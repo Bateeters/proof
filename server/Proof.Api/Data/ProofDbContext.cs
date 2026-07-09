@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Proof.Api.Models;
+
+namespace Proof.Api.Data;
 
 class ProofDbContext : DbContext
 {

@@ -1,3 +1,5 @@
+namespace Proof.Api.Models;
+
 class Account
 {
     public Guid Id { get; set; }
