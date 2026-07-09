@@ -1,0 +1,20 @@
+# Node / client
+node_modules/
+client/dist/
+client/.vite/
+
+# .NET / server
+server/**/bin/
+server/**/obj/
+*.user
+
+# Env / secrets
+.env
+.env.local
+**/appsettings.Local.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

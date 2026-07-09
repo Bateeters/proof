@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: proof-postgres
+    environment:
+      POSTGRES_USER: proof
+      POSTGRES_PASSWORD: proof_dev_password
+      POSTGRES_DB: proof
+    ports:
+      - "5432:5432"
+    volumes:
+      - proof-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  proof-postgres-data:
