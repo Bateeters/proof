@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Proof.Api.Data;
+using Proof.Api.DTOs;
+
+namespace Proof.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -16,6 +19,15 @@ public class AccountsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAccounts()
     {
-        return Ok(await _context.Accounts.ToListAsync());
+        var accounts = await _context.Accounts.ToListAsync();
+
+        var accountDtos = accounts.Select(account => new AccountDto
+        {
+            Id = account.Id,
+            Email = account.Email,
+            CreatedAt = account.CreatedAt
+        });
+
+        return Ok(accountDtos);
     }
 }
