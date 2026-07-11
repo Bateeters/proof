@@ -1,6 +1,6 @@
 namespace Proof.Api.Models;
 
-class Account
+public class Account
 {
     public Guid Id { get; set; }
     public required string Email { get; set; }
