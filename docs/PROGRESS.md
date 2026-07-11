@@ -25,4 +25,23 @@ Running session-by-session log. Newest entry on top. Purpose: let any session (e
 
 ---
 
+## 2026-07-11 — Phase 1: first entity, DbContext, migration, endpoint
+
+**Did:**
+- Regenerated `server/Proof.Api` with the controller-based template (`-controllers` flag) instead of the minimal-API default, matching `ARCHITECTURE.md`'s planned folder structure.
+- Added EF Core + Npgsql provider packages, `dotnet-ef` CLI tool.
+- Established the folder-matches-namespace convention (`Proof.Api.Models`, `.Data`, `.Controllers`, `.DTOs`) across all new files.
+- Brian wrote `Models/Account.cs` (first entity) and `Data/ProofDbContext.cs` (first DbContext) with hints-first support — covered properties vs. methods, type casing, nullable reference types / `required`, value vs. reference types (and why that explains EF Core's `DbSet<T>` nullable-warning exemption, verified empirically), inheritance + constructor base-call syntax, and class accessibility consistency (`CS0051`, caused by `internal`-by-default classes referenced from `public` signatures).
+- I wired `ProofDbContext` into `Program.cs` via `AddDbContext` (DI + connection string), generated and applied the `InitialCreate` migration — `Accounts` table now exists in Postgres, verified via `psql`.
+- Brian built `Controllers/AccountsController.cs` (`GET /api/accounts`) — first real endpoint, verified end-to-end against real Postgres.
+- Caught and fixed a real security gap before calling it done: the naive controller returned the full `Account` entity, including `PasswordHash`, in the JSON response. Introduced `DTOs/AccountDto.cs` and a `.Select()` projection to fix it — verified with a throwaway test row that the response now excludes `PasswordHash` while the DB query (correctly) still reads it. Documented this as a standing rule in `ARCHITECTURE.md`: controllers never return entities directly.
+- Fixed a build lock issue (rebuild appeared to hang — actually a still-running `dotnet run` locking the output DLL) — now a known troubleshooting step for both of us.
+
+**Mentoring calibration (important for future sessions):** Brian gave explicit feedback mid-session that blank-file + verbal-description tasks weren't working for new ASP.NET Core/EF Core patterns — he has real programming experience but these are genuinely new framework conventions (DI, attribute routing, DbContext lifecycle), not a general-beginner situation. Shifted to skeleton-file-with-marked-blanks for new patterns, plain/simple ("8th grade") language in explanations. Saved to persistent memory (not just this doc) since it should apply beyond this project. See memory entries `proof-mentoring-style` and `feedback-mentoring-scaffolding-level` if picking this up in a future session without this conversation's context.
+
+**Next:**
+- Phase 2: React frontend shell that calls `GET /api/accounts` and renders the result — first frontend slice, hooks/fetch/TS types.
+
+---
+
 <!-- Add new entries above this line, newest on top. -->

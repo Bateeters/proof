@@ -6,6 +6,12 @@ Base URL (dev): `http://localhost:5xxx/api`
 
 All endpoints except `/auth/*` require `Authorization: Bearer <jwt>`.
 
+## Accounts
+
+| Method | Route | Notes |
+|---|---|---|
+| GET | `/accounts` | Lists accounts, projected through `AccountDto` (id/email/createdAt only — `PasswordHash` never leaves the server). Built in Phase 1 as the first end-to-end slice; no auth/registration yet, so this currently returns whatever rows exist. Will be superseded/protected once auth (Phase 3) lands. |
+
 ## Auth
 
 | Method | Route | Body | Notes |

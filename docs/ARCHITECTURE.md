@@ -70,6 +70,10 @@ This distinction matters and is easy to conflate:
 
 Every feature endpoint after auth operates in the context of an *active profile*, not just an authenticated account.
 
+## Standing rule: controllers never return entities directly
+
+Established in Phase 1 (`AccountsController`): every endpoint returns a **DTO** (`DTOs/`), never an EF Core entity straight from `Models/`. The entity is the database's shape; the DTO is what's safe to hand to a client. This isn't optional per-endpoint judgment — `Account` has `PasswordHash` on it today, and any future entity could end up with its own field that shouldn't leave the server, so the rule is applied uniformly rather than decided case-by-case. Pattern: query entities via the `DbContext`, project to a DTO (typically via LINQ `.Select(...)`), return the DTO.
+
 ## Where things live
 
 See the root README for how to run everything locally. Folder structure is documented in [ROADMAP.md](./ROADMAP.md) phase 0 and reflected directly in the repo.
