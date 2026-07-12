@@ -44,4 +44,17 @@ Running session-by-session log. Newest entry on top. Purpose: let any session (e
 
 ---
 
+## 2026-07-12 — Phase 2: frontend foundations
+
+**Did:**
+- Brian wrote `client/src/types/Account.ts` (TS shape matching `AccountDto`: id/email/createdAt, all strings — caught and fixed a `Date` vs `string` mismatch, since JSON has no native date type; also caught a missing `export` via a real `tsc` failure, not just told about it).
+- Brian built `client/src/components/AccountsList.tsx` — first component combining `useState`, `useEffect`, and `fetch`. Given a skeleton with the two non-obvious lines (`useState<Account[]>([])`, the empty `useEffect` dependency array) pre-explained and the fetch/render logic left as blanks, per the scaffolding-level adjustment from last session. Got the fetch chain, state update, and list rendering (including the `key` prop) right on the first attempt.
+- I handled the cross-cutting config: `client/.env.development` + `vite-env.d.ts` for `VITE_API_BASE_URL` (client didn't know the API's actual port — `server/Proof.Api/Properties/launchSettings.json` has it running on `5168`, not the `5099` I'd been using for ad hoc verification), and CORS middleware in `Program.cs` (`AddCors`/`UseCors`) allowing `http://localhost:5173`. Cleared out the Vite starter template's demo content from `App.tsx` and wired in `AccountsList`.
+- Verified end-to-end via `tsc --noEmit`, a curl with a spoofed `Origin` header confirming the `Access-Control-Allow-Origin` response header, and both `App.tsx`/`AccountsList.tsx` transforming cleanly through Vite. Brian had his own `dotnet run`/`npm run dev` going in his own terminals by the end, so real-browser confirmation happened on his side.
+
+**Next:**
+- Phase 3: Auth (register/login, BCrypt hashing, JWT issuing/validation, React auth context). First real "logic-heavy" backend work since Phase 1, plus the first meaningful frontend state-management pattern (auth context).
+
+---
+
 <!-- Add new entries above this line, newest on top. -->
