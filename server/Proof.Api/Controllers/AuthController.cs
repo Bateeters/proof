@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Proof.Api.Data;
 using Proof.Api.DTOs;
 using Proof.Api.Models;
+using Proof.Api.Services;
 
 namespace Proof.Api.Controllers;
 
@@ -10,10 +12,12 @@ namespace Proof.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly ProofDbContext _context;
+    private readonly TokenService _tokenService;
 
-    public AuthController(ProofDbContext context)
+    public AuthController(ProofDbContext context, TokenService tokenService)
     {
         _context = context;
+        _tokenService = tokenService;
     }
 
     [HttpPost("register")]
@@ -35,12 +39,37 @@ public class AuthController : ControllerBase
         // actually write it to the database
         await _context.SaveChangesAsync();
 
-        // return the new account as an AccountDto, wrapped in Ok(...)
-        return Ok(new AccountDto
+        // return the new account as an AuthResponseDto, wrapped in Ok(...)
+        return Ok(new AuthResponseDto
         {
-            Id = newAccount.Id,
-            Email = newAccount.Email,
-            CreatedAt = newAccount.CreatedAt
+            Token = _tokenService.GenerateToken(newAccount),
+            Account = new AccountDto   
+            {
+                Id = newAccount.Id,
+                Email = newAccount.Email,
+                CreatedAt = newAccount.CreatedAt
+            }
+        });
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(LoginRequestDto request)
+    {
+        var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Email == request.Email);
+        
+        if (account == null || !BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash))
+            return Unauthorized();
+
+        var token = _tokenService.GenerateToken(account);
+        return Ok(new AuthResponseDto
+        {
+            Token = token,
+            Account = new AccountDto
+            {
+                Id = account.Id,
+                Email = account.Email,
+                CreatedAt = account.CreatedAt
+            }
         });
     }
 }
