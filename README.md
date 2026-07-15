@@ -7,6 +7,7 @@ This is a learning-focused, paired-programming portfolio project. See [docs/](./
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — system design and rationale
 - [DATA_MODEL.md](./docs/DATA_MODEL.md) — entities and relationships
 - [API_DESIGN.md](./docs/API_DESIGN.md) — endpoint reference
+- [DESIGN.md](./docs/DESIGN.md) — brand/visual direction (implemented in Phase 10)
 - [ROADMAP.md](./docs/ROADMAP.md) — phased build plan
 - [PROGRESS.md](./docs/PROGRESS.md) — session-by-session log
 
