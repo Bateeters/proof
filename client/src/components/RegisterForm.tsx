@@ -1,14 +1,14 @@
 import { useState, type SubmitEvent } from "react";
 import { useAuth } from "../context/AuthContext";
 
-export function LoginForm() {
+export function RegisterForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { login } = useAuth();
+    const { register } = useAuth();
 
     async function handleSubmit(e: SubmitEvent) {
         e.preventDefault();
-        await login(email, password)
+        await register(email, password)
     }
 
     return (
@@ -18,12 +18,12 @@ export function LoginForm() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
             />
-            <input
+            <input 
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
             />
-            <button type="submit">Log In</button>
+            <button type="submit">Register</button>
         </form>
     )
 }

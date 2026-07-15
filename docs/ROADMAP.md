@@ -7,7 +7,7 @@ Phased build order. Each phase = a concept explanation, a scaffolding step (done
 | 0 | Docs + skeleton scaffolding | Repo/tooling layout, Docker basics | ✅ done |
 | 1 | Backend foundations (first entity, DbContext, one endpoint) | REST fundamentals, EF Core basics, migrations | ✅ done |
 | 2 | Frontend foundations (React shell calling the endpoint) | Components, hooks, fetch, TS types | ✅ done |
-| 3 | Auth (register/login, BCrypt, JWT, middleware, React auth context) | Password hashing, token auth, protected routes | ⬜ not started |
+| 3 | Auth (register/login, BCrypt, JWT, middleware, React auth context) | Password hashing, token auth, protected routes | ✅ done |
 | 4 | Profiles (multi-profile CRUD, active-profile switching) | Nested resource design, frontend context/state | ⬜ not started |
 | 5 | TheCocktailDB sync + discovery (browse/search, seasonal toggle) | External API integration, background jobs, caching | ⬜ not started |
 | 6 | Taste-based ranking *(challenge brief)* | Scoring/ranking algorithms | ⬜ not started |

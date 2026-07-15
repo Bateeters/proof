@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Proof.Api.Data;
@@ -7,6 +8,7 @@ namespace Proof.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AccountsController : ControllerBase
 {
     private readonly ProofDbContext _context;
