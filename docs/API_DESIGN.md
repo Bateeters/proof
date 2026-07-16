@@ -10,16 +10,16 @@ All endpoints except `/auth/*` require `Authorization: Bearer <jwt>`.
 
 | Method | Route | Notes |
 |---|---|---|
-| GET | `/accounts` | Lists accounts, projected through `AccountDto` (id/email/createdAt only — `PasswordHash` never leaves the server). Built in Phase 1 as the first end-to-end slice; no auth/registration yet, so this currently returns whatever rows exist. Will be superseded/protected once auth (Phase 3) lands. |
+| GET | `/accounts` | **Requires auth.** Lists accounts, projected through `AccountDto` (id/email/createdAt only — `PasswordHash` never leaves the server). Built in Phase 1 as the first end-to-end slice; protected with `[Authorize]` once JWT auth landed in Phase 3. |
 
 ## Auth
 
 | Method | Route | Body | Notes |
 |---|---|---|---|
-| POST | `/auth/register` | `{ email, password }` | Creates Account, returns JWT |
-| POST | `/auth/login` | `{ email, password }` | Returns JWT |
+| POST | `/auth/register` | `{ email, password }` | Hashes password (BCrypt), creates Account, returns `AuthResponseDto` (`{ token, account }`) — auto-login on register |
+| POST | `/auth/login` | `{ email, password }` | Verifies password, returns `AuthResponseDto` (`{ token, account }`). Nonexistent email and wrong password both return an identical `401` — no distinguishing info, to avoid account enumeration |
 
-## Profiles
+## Profiles *(planned)*
 
 | Method | Route | Notes |
 |---|---|---|

@@ -4,6 +4,32 @@ Running session-by-session log. Newest entry on top. Purpose: let any session (e
 
 ---
 
+## 2026-07-13 to 2026-07-15 — Phase 3: Auth
+
+**Did:**
+- Backend: added `BCrypt.Net-Next` for password hashing and `Microsoft.AspNetCore.Authentication.JwtBearer` for token issuing/validation.
+- Brian built `RegisterRequestDto`/`LoginRequestDto` (input DTOs — first time distinguishing input vs. output DTOs) and `AuthResponseDto` (`{ token, account }`).
+- Brian built `POST /api/auth/register` (hash password, save `Account`, stage/save via EF Core's `Add`+`SaveChangesAsync` — first DB write) and `POST /api/auth/login` (`FirstOrDefaultAsync` lookup + `BCrypt.Verify`, identical `401` for "no such email" vs. "wrong password" to avoid account enumeration — Brian identified this requirement himself before being told).
+- I built `TokenService` (JWT generation) and wired JWT validation middleware into `Program.cs` — pure framework/crypto ceremony, handled directly per our usual split.
+- Verified end-to-end repeatedly via curl: real bcrypt hash in Postgres (not plaintext), correct-credentials login returns a token, wrong-password and nonexistent-email both return identical `401`s.
+- Caught a real gap via self-review (same pattern as the Phase 1 `PasswordHash` catch): `Register` wasn't actually returning a token despite `API_DESIGN.md` documenting auto-login — fixed to match.
+- Frontend: `AuthContext.tsx` (React Context — first use of `createContext`/`useContext`/Provider pattern), `LoginForm.tsx`/`RegisterForm.tsx` (first controlled-input forms), wired `AuthProvider` around `App` in `main.tsx`, `App.tsx` now conditionally renders forms vs. logged-in view based on auth state.
+- Closed the loop: added `[Authorize]` to `AccountsController` (Brian's call, via explicit prompt — endpoint was previously wide open despite auth now existing) and updated `AccountsList.tsx` to send the `Authorization: Bearer` header, including adding `token` to its `useEffect` dependency array.
+- Brian requested and got a design-direction doc (`docs/DESIGN.md`) — light "Marble" (white/gray/gold) and dark "Midnight Sunset" (indigo/purple/pink/orange/gold) themes with a toggle, gold single-line logo. Not implemented until Phase 10; captured now so it isn't lost.
+
+**Real bugs hit and fixed this phase (good reference if similar ones recur):**
+- `BCrypt.Net-Next`'s namespace (`BCrypt.Net`) and class (`BCrypt`) share a name — bare `BCrypt.HashPassword(...)` even with `using BCrypt.Net;` resolves to the namespace, not the class. Fix: fully qualify as `BCrypt.Net.BCrypt.HashPassword(...)`.
+- .NET 10 added `System.Linq.AsyncEnumerable` (already in scope via the implicit `System.Linq` using), which has its own same-named `FirstOrDefaultAsync` — without `using Microsoft.EntityFrameworkCore;` in a file, calls silently resolve to the wrong one and produce a confusing `CS0411` type-inference error rather than a clean "not found."
+- React's `FormEvent` type is deprecated (its own JSDoc says "doesn't actually exist") — use `SubmitEvent` for form `onSubmit` handlers instead. Brian caught this one himself from an IDE hint.
+- Classic `.then()` chaining bug in `AuthContext`: chained `.then()` calls each receive the *previous* `.then()`'s return value, not the original data — `setAccount`/`setToken` return nothing, so a third `.then()` tried to read `.token` off `void`. Resolved by switching to `async`/`await`.
+
+**Mentoring notes:** Brian is picking up the skeleton-with-blanks pattern well and increasingly needs less scaffolding on repeated patterns (RegisterForm from LoginForm, LoginRequestDto from RegisterRequestDto) — good sign the calibration from [[feedback-mentoring-scaffolding-level]] is working as intended. He's also proactively asking "why" on design decisions (DTO duplication vs. reuse, enumeration protection) rather than just accepting instructions, and catching things independently (IDE deprecation hints, the missing auto-login token).
+
+**Next:**
+- Phase 4: Profiles (multi-profile CRUD under an account, active-profile switching on the frontend).
+
+---
+
 ## 2026-07-09 — Kickoff & architecture
 
 **Did:**
