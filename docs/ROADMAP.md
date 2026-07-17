@@ -27,3 +27,16 @@ Phased build order. Each phase = a concept explanation, a scaffolding step (done
 - Verify: Postgres container starts, `dotnet run` serves the default endpoint, `npm run dev` serves the default page
 
 Feature work (Phase 1 onward) starts in the next session.
+
+## Post-MVP ideas (not scheduled)
+
+From the original project brief:
+- Custom recipe creation (data model already supports this — `Cocktail.IsCustom`/`OwnerProfileId` — UI deferred)
+- Shared cookbook — optional sharing between household profiles
+- Rating and notes on saved recipes
+- Mobile bartending mode — step-by-step instructions, scaled measurements
+- Expand mythology/topic as a separate future project (Norse, Egyptian, Roman)
+- Social/sharing features
+
+Added during Phase 4 (2026-07-17), from a design discussion with Brian about why Account/Profile are split:
+- **"Shared" / crowd-pleaser mode** — a way to get recommendations spanning *all* profiles on an account at once (e.g. "find something everyone here would like"), as opposed to the MVP's one-active-profile-at-a-time model. Explicitly V2+, not MVP — flagged so it isn't confused with or accidentally built into the Phase 6 ranking work, which is scoped to a single active profile only.

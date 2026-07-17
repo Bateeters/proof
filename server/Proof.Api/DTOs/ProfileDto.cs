@@ -7,4 +7,3 @@ public class ProfileDto
     public required string AvatarColor { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
-
