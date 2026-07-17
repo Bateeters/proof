@@ -25,6 +25,10 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Without this, ASP.NET Core silently renames short claim names (like "sub")
+        // into long legacy URIs behind the scenes, so User.FindFirst("sub") would
+        // mysteriously come back empty even though the token clearly has it.
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

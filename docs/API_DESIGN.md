@@ -19,14 +19,14 @@ All endpoints except `/auth/*` require `Authorization: Bearer <jwt>`.
 | POST | `/auth/register` | `{ email, password }` | Hashes password (BCrypt), creates Account, returns `AuthResponseDto` (`{ token, account }`) — auto-login on register |
 | POST | `/auth/login` | `{ email, password }` | Verifies password, returns `AuthResponseDto` (`{ token, account }`). Nonexistent email and wrong password both return an identical `401` — no distinguishing info, to avoid account enumeration |
 
-## Profiles *(planned)*
+## Profiles *(planned — Phase 4)*
 
 | Method | Route | Notes |
 |---|---|---|
-| GET | `/profiles` | List profiles under the authenticated account |
-| POST | `/profiles` | Create a profile |
-| GET | `/profiles/{id}/preferences` | Get taste preference profile |
-| PUT | `/profiles/{id}/preferences` | Update spirits/flavors/allergens |
+| GET | `/profiles` | List profiles under the authenticated account (account identified via JWT claims, not a route param) |
+| POST | `/profiles` | Create a profile under the authenticated account |
+
+Taste preference endpoints (`/profiles/{id}/preferences`) moved to Phase 6 — see `docs/ROADMAP.md`. Preferences are only meaningful once the ranking logic that consumes them exists, so they're built together rather than in isolation.
 
 ## Cocktails / Discovery *(planned)*
 

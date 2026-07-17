@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Proof.Api.Data;
@@ -11,9 +12,11 @@ using Proof.Api.Data;
 namespace Proof.Api.Migrations
 {
     [DbContext(typeof(ProofDbContext))]
-    partial class ProofDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716150043_AddProfiles")]
+    partial class AddProfiles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -10,7 +10,7 @@ Phased build order. Each phase = a concept explanation, a scaffolding step (done
 | 3 | Auth (register/login, BCrypt, JWT, middleware, React auth context) | Password hashing, token auth, protected routes | ✅ done |
 | 4 | Profiles (multi-profile CRUD, active-profile switching) | Nested resource design, frontend context/state | ⬜ not started |
 | 5 | TheCocktailDB sync + discovery (browse/search, seasonal toggle) | External API integration, background jobs, caching | ⬜ not started |
-| 6 | Taste-based ranking *(challenge brief)* | Scoring/ranking algorithms | ⬜ not started |
+| 6 | Taste preferences + taste-based ranking *(challenge brief)* | Lookup tables/join entities, scoring/ranking algorithms | ⬜ not started |
 | 7 | Personal cookbook (save/list/remove) | CRUD on a relationship, ownership/privacy checks | ⬜ not started |
 | 8 | Substitution engine *(challenge brief)* | Rule-lookup systems, conditional branching UX | ⬜ not started |
 | 9 | "What Can I Make?" *(challenge brief)* | Set logic, SQL joins, ranking by closeness | ⬜ not started |
