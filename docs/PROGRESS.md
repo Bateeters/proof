@@ -4,6 +4,31 @@ Running session-by-session log. Newest entry on top. Purpose: let any session (e
 
 ---
 
+## 2026-07-16 to 2026-07-22 — Phase 4: Profiles
+
+**Did:**
+- Scoped Phase 4 down to profile CRUD + active-profile switching only; moved taste preferences (spirits/flavors/allergens — multiple lookup/join tables) to bundle with Phase 6's ranking work instead of building them with nothing yet consuming the data. Documented in `ROADMAP.md`/`API_DESIGN.md`.
+- Brian built the `Profile` entity — first use of a real foreign key + navigation property (`AccountId` + `Account`). Learned why the navigation property can't be `required` (`= null!` instead) and confirmed via the generated migration that it's what makes EF Core emit a real FK constraint (`FK_Profiles_Accounts_AccountId`, cascade delete) rather than just a bare column.
+- I proactively fixed a real ASP.NET Core gotcha before it could cause a confusing debugging session: `options.MapInboundClaims = false` in `Program.cs`, since the framework silently remaps JWT claim names (like `"sub"`) to legacy URIs by default, which would've made `User.FindFirst("sub")` mysteriously fail.
+- Brian built `ProfilesController` (`GET`/`POST /api/profiles`) — first time reading identity from JWT claims (`User.FindFirst(JwtRegisteredClaimNames.Sub)`) to scope a query to "my account only." Caught his own bug: `ProfileDto` construction was missing `Id`/`CreatedAt` (compiled fine since neither was `required`, but would've returned `Guid.Empty` for every profile's id — a real bug since nothing else in this phase would've caught it before it hit the frontend).
+- Verified end-to-end via curl: created two profiles under one account (one with an explicit `avatarColor`, one omitted to confirm the server-side `"gray"` default), confirmed both scoped correctly to the authenticated account via the generated SQL's `WHERE` clause.
+- Frontend: `Profile.ts` type, `ProfileContext.tsx` (a context that depends on another context — calls `useAuth()` internally; reacts to login/logout via `token` in its `useEffect` dependency array), `ProfileSwitcher.tsx` (profile list with click-to-switch and active-profile highlighting, plus a create-profile form).
+- Design discussion with Brian (captured in `ROADMAP.md`'s Post-MVP ideas): confirmed the Account/Profile split's actual justification is the shared-device UX (switching whose profile is active without a full logout/login, e.g. a phone passed around while making drinks together), not shared billing, which doesn't apply since Proof has no subscription concept. Brian proposed a V2 "crowd pleaser" mode spanning all profiles on an account — explicitly deferred, documented so it isn't confused with the single-active-profile Phase 6 ranking scope.
+
+**Real bugs hit and fixed this phase:**
+- `ProfileDto` missing `Id`/`CreatedAt` in construction — compiled clean (neither was `required`) but would've silently returned wrong data (`Guid.Empty` ids) to every consumer. Brian caught the *pattern* himself after this was pointed out once.
+- Object reference-equality bug in `ProfileSwitcher`'s active-profile check (`activeProfile == profile`) — objects compare by reference in JS, not by value, so this would've broken the moment `profiles` got re-fetched (new object instances, same data). Fixed by comparing `.id` (a string, i.e. a real value) on both sides instead of whole objects.
+- Missing `Authorization` header on `ProfileContext`'s `createProfile` POST (had `Content-Type` but not the auth header) — would've 401'd the moment anyone tried to create a profile.
+- A genuinely obscure one: bare `SubmitEvent` in `ProfileSwitcher.tsx` (missing the `import type { SubmitEvent } from "react"` that `LoginForm`/`RegisterForm` both have) silently resolved to an unrelated *global DOM* type with the same name instead of erroring "not found" — produced a confusing structural-mismatch error rather than a clear missing-import one.
+- `onChange` on the new-profile input was calling `createProfile()` (a server POST) on every keystroke instead of updating local state — Brian caught and fixed this himself while addressing the `SubmitEvent` issue, without it being pointed out separately.
+
+**Mentoring calibration (important for future sessions):** Brian gave explicit corrective feedback this phase: even for steps he's already done before (e.g. destructuring a hook's return value — he'd done this 3+ times), don't paste the literal line of code, describe it in words instead. Updated `feedback-mentoring-scaffolding-level` memory with this refinement. The prior "skeleton for new patterns, blank slate for repeated ones" calibration still holds — this refines *how* to hint at repeated patterns specifically (words, not snippets), not when.
+
+**Next:**
+- Phase 5: TheCocktailDB sync + discovery (browse/search, seasonal toggle).
+
+---
+
 ## 2026-07-13 to 2026-07-15 — Phase 3: Auth
 
 **Did:**

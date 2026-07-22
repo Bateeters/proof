@@ -19,12 +19,12 @@ All endpoints except `/auth/*` require `Authorization: Bearer <jwt>`.
 | POST | `/auth/register` | `{ email, password }` | Hashes password (BCrypt), creates Account, returns `AuthResponseDto` (`{ token, account }`) — auto-login on register |
 | POST | `/auth/login` | `{ email, password }` | Verifies password, returns `AuthResponseDto` (`{ token, account }`). Nonexistent email and wrong password both return an identical `401` — no distinguishing info, to avoid account enumeration |
 
-## Profiles *(planned — Phase 4)*
+## Profiles
 
-| Method | Route | Notes |
-|---|---|---|
-| GET | `/profiles` | List profiles under the authenticated account (account identified via JWT claims, not a route param) |
-| POST | `/profiles` | Create a profile under the authenticated account |
+| Method | Route | Body | Notes |
+|---|---|---|---|
+| GET | `/profiles` | — | **Requires auth.** Lists profiles under the authenticated account — account identified via the JWT's `sub` claim (see `ProfilesController.GetAccountId()`), not a route param or request body. Projected through `ProfileDto` (id/displayName/avatarColor/createdAt). |
+| POST | `/profiles` | `{ displayName, avatarColor? }` | **Requires auth.** Creates a profile under the authenticated account. `avatarColor` is optional, defaults to `"gray"` server-side if omitted. `accountId` is deliberately *not* part of the request body — it always comes from the token, never from client-supplied data, so one account can never create a profile under another. |
 
 Taste preference endpoints (`/profiles/{id}/preferences`) moved to Phase 6 — see `docs/ROADMAP.md`. Preferences are only meaningful once the ranking logic that consumes them exists, so they're built together rather than in isolation.
 
