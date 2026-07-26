@@ -16,6 +16,7 @@ Ingredient 1---* IngredientSubstitution (as Source)
 Ingredient 1---* IngredientSubstitution (as Replacement)
 
 Cocktail 1---* CocktailIngredient *---1 Ingredient
+Cocktail 1---* CocktailSeason
 Cocktail *---1 Profile            (OwnerProfileId, nullable — only set for custom recipes)
 
 Profile 1---* CookbookEntry *---1 Cocktail
@@ -105,6 +106,14 @@ Cocktail ↔ Ingredient, many-to-many, with per-recipe detail.
 | Measure | freetext, e.g. "1 1/2 oz" (matches source data format) |
 | SortOrder | preserves ingredient list order from the recipe |
 
+### CocktailSeason (join)
+Cocktail ↔ Season, many-to-many — a cocktail can belong to multiple seasons (e.g. a Moscow Mule fits both Spring and Summer; a warm spiced drink can fit both Fall and Winter). TheCocktailDB has no season data at all, so this is populated by a heuristic we write ourselves during sync (see `ARCHITECTURE.md`), not sourced data.
+
+| Field | Notes |
+|---|---|
+| CocktailId | FK |
+| Season | enum: `Spring` / `Summer` / `Fall` / `Winter` |
+
 ### IngredientSubstitution
 The seeded rule table that powers the substitution engine (Phase 8). Curated data, not user-generated for MVP.
 
@@ -142,3 +151,4 @@ Snapshots any substitutions applied *before* saving, so the cookbook entry refle
 - **Why `Sentiment` enums instead of separate Likes/Dislikes tables**: one table with a sentiment column is less schema duplication and makes "show me everything this profile has an opinion on" a single query. Trade-off: slightly less type-safety than separate tables, acceptable here.
 - **Why `FlavorTag` is shared between ingredients and profile preferences**: this shared vocabulary is *the* mechanism that makes taste-based ranking possible — we can score "does this cocktail's ingredient flavor tags overlap with what this profile prefers/avoids" directly in SQL/LINQ.
 - **Why `IsCustom` lives on `Cocktail` instead of a separate `CustomRecipe` table**: per the brief, we want the data model ready for custom recipes without building the UI yet. Reusing `Cocktail` means custom recipes automatically work with cookbook, substitution, and display logic for free — no parallel code path needed later.
+- **Why `CocktailSeason` is a join table, not a field on `Cocktail`**: decided with Brian in Phase 5 — TheCocktailDB has zero season data, so we assign it ourselves via a heuristic (category/ingredients/serving style). A cocktail can genuinely belong to multiple seasons (a Moscow Mule fits Spring and Summer; a warm spiced drink can fit Fall and Winter), so a single `Season` field would force an inaccurate either/or choice. The heuristic assigns a *set*, not a pick-one value.
