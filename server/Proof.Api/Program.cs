@@ -22,6 +22,10 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddHttpClient<CocktailDbSyncService>(client =>
+{
+    client.BaseAddress = new Uri("https://www.thecocktaildb.com/api/json/v1/1/");
+});
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
