@@ -88,13 +88,29 @@ public class CocktailDbSyncService
             });
         }
 
+        var ingredientNames = drink.GetIngredients().Select(i => i.Name);
+        foreach (var season in SeasonHeuristic.AssignSeasons(ingredientNames))
+        {
+            _context.CocktailSeasons.Add(new CocktailSeason
+            {
+                CocktailId = cocktail.Id,
+                Cocktail = cocktail,
+                Season = season
+            });
+        }
+
         return true;
     }
 
     private async Task<Ingredient> GetOrCreateIngredientAsync(string name)
     {
-        var existing = await _context.Ingredients
-            .FirstOrDefaultAsync(i => i.Name == name);
+        // Check already-tracked-but-not-yet-saved ingredients first (added earlier
+        // in this same sync run), then fall back to the database for ingredients
+        // that persisted from a previous sync. Without the .Local check, every
+        // ingredient would get re-created once per cocktail that uses it, since
+        // SaveChangesAsync only runs once at the very end of the whole sync.
+        var existing = _context.Ingredients.Local.FirstOrDefault(i => i.Name == name)
+            ?? await _context.Ingredients.FirstOrDefaultAsync(i => i.Name == name);
 
         if (existing != null)
         {
