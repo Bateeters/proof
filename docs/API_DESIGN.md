@@ -28,13 +28,13 @@ All endpoints except `/auth/*` require `Authorization: Bearer <jwt>`.
 
 Taste preference endpoints (`/profiles/{id}/preferences`) moved to Phase 6 — see `docs/ROADMAP.md`. Preferences are only meaningful once the ranking logic that consumes them exists, so they're built together rather than in isolation.
 
-## Cocktails / Discovery *(planned)*
+## Cocktails / Discovery
 
 | Method | Route | Notes |
 |---|---|---|
-| GET | `/cocktails?search=&category=&season=&profileId=` | Browse/search, ranked by profile if `profileId` given |
-| GET | `/cocktails/{id}` | Full recipe detail |
-| GET | `/cocktails/what-can-i-make?ingredients=vodka,lime,mint` | Local-cache subset-match filter |
+| GET | `/cocktails?search=&category=&season=` | **Requires auth.** Browse/search local cache. All three filters optional and combinable; `search` matches partial, case-insensitive `Name` (`.ToLower().Contains()` — Postgres string comparison is case-sensitive by default, so both sides get lowercased); `category` is an exact match; `season` matches cocktails tagged with that `Season` value via `CocktailSeasons`. Projected through `CocktailSummaryDto` (id/name/category/glass/imageUrl — no instructions/ingredients, kept lean for list views). Profile-based ranking (`profileId`) deferred to Phase 6, same as taste preferences. |
+| GET | `/cocktails/{id}` | **Requires auth.** Full recipe detail — `CocktailDetailDto` (summary fields + instructions + full ingredient list with measures). `404` if the id doesn't exist. Ingredients loaded via `.Include()`/`.ThenInclude()` eager loading. |
+| GET | `/cocktails/what-can-i-make?ingredients=vodka,lime,mint` *(planned — Phase 9)* | Local-cache subset-match filter |
 
 ## Cookbook *(planned)*
 
@@ -50,11 +50,11 @@ Taste preference endpoints (`/profiles/{id}/preferences`) moved to Phase 6 — s
 |---|---|---|---|
 | POST | `/substitutions/suggest` | `{ cocktailId, ingredientId, reason: "Taste"|"Availability", subReason?: "Cost"|"Supply" }` | Returns a suggested replacement ingredient per the two-question flow |
 
-## Admin / sync *(planned)*
+## Admin / sync
 
 | Method | Route | Notes |
 |---|---|---|
-| POST | `/admin/sync-cocktails` | Triggers the TheCocktailDB → local cache sync job |
+| POST | `/admin/sync-cocktails` | **Requires auth** (any logged-in account — no real admin-role system yet, out of scope for MVP). Runs `CocktailDbSyncService`: walks TheCocktailDB's `search.php?f=<letter>` for a–z, adds any cocktails not already synced (matched by `ExternalId`), dedupes ingredients by name, and assigns seasons via `SeasonHeuristic`. Safe to re-run — already-synced cocktails are skipped. Returns `{ cocktailsAdded }`. |
 
 ## Conventions
 
