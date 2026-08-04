@@ -31,7 +31,7 @@ public class CocktailsController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(c => c.Name.Contains(search));
+            query = query.Where(c => c.Name.ToLower().Contains(search.ToLower()));
         }
 
         if (!string.IsNullOrWhiteSpace(category))
