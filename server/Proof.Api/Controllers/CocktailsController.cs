@@ -36,7 +36,7 @@ public class CocktailsController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(category))
         {
-            query = query.Where(c => c.Category == category);
+            query = query.Where(c => c.Category.ToLower() == category.ToLower());
         }
 
         if (season.HasValue)
