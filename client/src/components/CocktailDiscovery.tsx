@@ -14,23 +14,41 @@ export function CocktailDiscovery() {
     async function handleSearch(e: SubmitEvent) {
         e.preventDefault();
 
-        // TODO: build a URLSearchParams form search/category/season (only
-        // .append() the ones that acutally have a value), then fetch
-        // GET /api/cocktails?<params> with the Authorization header, and
-        // store the result with setResults.
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (category) params.append('category', category);
+        if (season) params.append('season', season);
+
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails?${params}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(response => response.json())
+            .then(data => setResults(data));
     }
 
     async function handleSelectCocktail(id: string) {
-        // TODO: fetch GET /api/cocktails/{id} with the Authorization header,
-        // and store the result with setSelectedCocktail.
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(response => response.json())
+            .then(data => setSelectedCocktail(data));
     }
 
     if (selectedCocktail) {
         return (
             <div>
                 <button onClick={() => setSelectedCocktail(null)}>Back To Results</button>
-                {/* TODO: render selectedCocktail's name, category, glass, image,
-                instructions, and ingredient list (name + measure each) */}
+                <h3>{selectedCocktail.name}</h3>
+                <p>{selectedCocktail.category} | {selectedCocktail.glass}</p>
+                <img src={selectedCocktail.imageUrl ?? undefined} alt={selectedCocktail.name} />
+                <ul>
+                    {selectedCocktail.ingredients.map((ingredient, index) => (
+                        <li key={index}>
+                            {ingredient.measure} {ingredient.ingredientName}
+                        </li>
+                    ))}
+                </ul>
+                <p>{selectedCocktail.instructions}</p>
             </div>
         );
     }
@@ -38,15 +56,38 @@ export function CocktailDiscovery() {
     return (
         <div>
             <form onSubmit={handleSearch}>
-                {/* TODO: controlled text input for search */}
-                {/* TODO: controlled text input for category */}
-                {/* TODO: controlled <select> for season - options: "" (any), Spring, Summer, Fall, Winter */}
+                <input
+                    type="text"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                />
+                <input
+                    type="text"
+                    value={category}
+                    onChange={e => setCategory(e.target.value)}
+                />
+                <select
+                    value={season}
+                    onChange={e => setSeason(e.target.value)}
+                >
+                    <option value="">Any Season</option>
+                    <option value="Spring">Spring</option>
+                    <option value="Summer">Summer</option>
+                    <option value="Fall">Fall</option>
+                    <option value="Winter">Winter</option>
+                </select>
                 <button type="submit">Search</button>
             </form>
 
             <ul>
-                {/* TODO: one item per result in 'results', showing name + category,
-                with an onClick calling handleSelectCocktail(result.id) */}
+                {results.map((result) => (
+                    <li
+                        key={result.id}
+                        onClick={() => handleSelectCocktail(result.id)}
+                    >
+                        <strong>{result.name}</strong> | {result.category}
+                    </li>
+                ))}
             </ul>
         </div>
     );
