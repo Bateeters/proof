@@ -4,6 +4,30 @@ Running session-by-session log. Newest entry on top. Purpose: let any session (e
 
 ---
 
+## 2026-07-23 to 2026-08-06 — Phase 5: TheCocktailDB sync + discovery
+
+**Did:**
+- Resolved a real data-model gap before building anything: TheCocktailDB has zero season data. Decided with Brian to build a rule-based heuristic assigning *multiple* seasons per cocktail (not one) via a new `CocktailSeason` join table — documented in `DATA_MODEL.md`/`ARCHITECTURE.md`.
+- Brian built `Cocktail`, `Ingredient`, `CocktailIngredient`, `CocktailSeason` entities plus `Enums.cs` (`IngredientType`, `CostTier`, `AvailabilityTier` — Brian added a `Seasonal` value himself, `Season`) — first entities with real FK+navigation pairs beyond Account/Profile, first many-to-many join entities, first enums.
+- I built `CocktailDbSyncService` (typed `HttpClient`, TheCocktailDB API models, `PropertyNameCaseInsensitive` JSON matching, upsert-by-`ExternalId` pattern) and the admin sync endpoint — framework/plumbing-heavy, handled directly per usual.
+- **`SeasonHeuristic` challenge brief** — this one needed much heavier scaffolding than prior challenges (Brian explicitly flagged the first attempt as overwhelming — "kind of a little overwhelming to just be thrown at this with a blank doc"); broke it into a keyword-matching helper + a main loop + a fallback, built up over several rounds. Brian caught a real, substantive bug independently mid-build: naive substring matching (`"Ginger Beer".Contains("gin")`) causes false positives (`"apple"` inside `"Pineapple"`) — led to switching to whole-word matching. Verified against 3 concrete test cases in an isolated scratch project, then again against real synced data (Moscow Mule → Spring+Summer, matching an example from an earlier design conversation).
+- Ran the real sync — 426 cocktails. Caught and fixed a real bug in my own sync service: ingredient deduplication only checked the database, not EF Core's in-memory change tracker, so repeated ingredients (e.g. "Vodka") got a new row per cocktail instead of being reused (`_context.Ingredients.Local.FirstOrDefault(...)` fix). Verified via row counts before/after (1672→327 ingredient rows) and a full Moscow Mule spot-check against real data.
+- Brian built `CocktailsController` (`GET /api/cocktails` with combinable search/category/season filters via conditionally-chained `.Where()` on deferred `IQueryable`; `GET /api/cocktails/{id}` with `.Include()`/`.ThenInclude()` eager loading) — struggled significantly on this one (several real bugs: wrong variable names, `.Select()` misapplied to a single item instead of a collection, missing `using` statements) and asked for a full re-explanation partway through; walked the entire finished file back through in detail afterward, section by section, until it made sense rather than just "compiles now." Caught a real Postgres-specific bug together: `.Contains()` is case-sensitive on Postgres by default (unlike SQL Server) — `"margarita"` didn't match `"Margarita"` until both sides got `.ToLower()`'d.
+- Frontend: `Cocktail.ts` types (Brian switched `CocktailDetail` to an intersection type over `CocktailSummary` on his own after I mentioned the option), `CocktailDiscovery.tsx` — first use of `URLSearchParams` for building a filtered query string, first `<select>`, first `null`-vs-`undefined` type friction (`imageUrl` needed `?? undefined` for the `<img src>` prop). Verified end-to-end against real data (combined category+season filter, 79 results).
+
+**Real bugs hit and fixed this phase:**
+- Naive character-level substring matching in `SeasonHeuristic` (`"apple"` false-matching inside `"Pineapple"`) — fixed by splitting into words and matching whole words only. Caught by Brian, not flagged by me first.
+- EF Core change-tracker gotcha: querying the database for "does this already exist" doesn't see entities `Add()`-ed earlier in the same unit of work, only ones already `SaveChangesAsync()`'d — caused 62 duplicate "Vodka" rows. Fix: check `.Local` first.
+- Postgres's case-sensitive default string comparison broke search until both sides were lowercased.
+- Several rounds of copy-paste-style naming mismatches in `CocktailsController` (`cocktails` vs `cocktail`, `cocktailDetailDtos` vs `cocktailDetailDto`) — resolved through repeated build-and-fix cycles.
+
+**Mentoring notes:** `SeasonHeuristic` is a useful data point on calibration — it's the first "design an algorithm from scratch" task (as opposed to "translate a known pattern into C#"), and the existing skeleton-for-new-patterns approach wasn't enough scaffolding for that different *kind* of task; had to break it into much smaller, named sub-steps. `CocktailsController` needed a full stop-and-reset ("I'm lost, walk me through this line by line") partway through — dense, multi-concept controller work (conditional `IQueryable` building, eager loading, nested projections all at once) seems to be where Brian's confidence drops fastest; worth deliberately pacing dense controllers more slowly next time rather than handing over a five-concept skeleton in one shot.
+
+**Next:**
+- Phase 6: taste preferences (spirits/flavors/allergens — deferred from Phase 4) + taste-based ranking (challenge brief).
+
+---
+
 ## 2026-07-16 to 2026-07-22 — Phase 4: Profiles
 
 **Did:**
