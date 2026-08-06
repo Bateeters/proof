@@ -2,6 +2,7 @@ import { AccountsList } from './components/AccountsList'
 import { LoginForm } from './components/LoginForm'
 import { RegisterForm } from './components/RegisterForm'
 import { ProfileSwitcher } from './components/ProfileSwitcher'
+import { CocktailDiscovery } from './components/CocktailDiscovery'
 import { useAuth } from './context/AuthContext'
 import { useProfiles } from './context/ProfileContext'
 import './App.css'
@@ -19,6 +20,7 @@ function App() {
           <p>Active profile: {activeProfile ? activeProfile.displayName : 'none selected'}</p>
           <button onClick={logout}>Log Out</button>
           <ProfileSwitcher />
+          <CocktailDiscovery />
           <AccountsList />
         </div>
       ) : (
