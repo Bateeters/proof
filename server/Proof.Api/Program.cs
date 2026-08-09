@@ -22,6 +22,7 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<DataSeedService>();
 builder.Services.AddHttpClient<CocktailDbSyncService>(client =>
 {
     client.BaseAddress = new Uri("https://www.thecocktaildb.com/api/json/v1/1/");
@@ -50,6 +51,16 @@ builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Seed lookup data (Spirits, FlavorTags) on startup if it's not already there.
+// DbContext is "scoped" (one instance per HTTP request), but this code runs
+// before any requests exist, so there's no request to hang a scope off of —
+// CreateScope() manually creates one just for this startup work.
+using (var scope = app.Services.CreateScope())
+{
+    var seedService = scope.ServiceProvider.GetRequiredService<DataSeedService>();
+    await seedService.SeedAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
