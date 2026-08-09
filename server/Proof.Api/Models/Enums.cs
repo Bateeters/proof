@@ -32,3 +32,9 @@ public enum Season
     Fall,
     Winter
 }
+
+public enum Sentiment
+{
+    Positive,
+    Negative
+}
