@@ -135,17 +135,52 @@ public class ProfilesController : ControllerBase
             .ToListAsync();
         _context.ProfileSpiritPreferences.RemoveRange(existingSpiritPreferences);
 
-        // TODO: same two-setp delete for _context.ProfileFlavorPreferences
+        var existingFlavorPreferences = await _context.ProfileFlavorPreferences
+            .Where(fp => fp.ProfileId == id)
+            .ToListAsync();
+        _context.ProfileFlavorPreferences.RemoveRange(existingFlavorPreferences);
 
-        // TODO: same two-step delete for _context.ProfileAllergens
+        var existingAllergens = await _context.ProfileAllergens
+            .Where(a => a.ProfileId == id)
+            .ToListAsync();
+        _context.ProfileAllergens.RemoveRange(existingAllergens);
 
-        // TODO: loop through request.SpiritPreferences, and for each one, Add a new
-        // ProfileSpiritPreference (ProfileId = id, SpiritId = ..., Sentiment = ...)
+        foreach (SpiritPreferenceInputDto sp in request.SpiritPreferences)
+        {
+            var newSpiritPreference = new ProfileSpiritPreference
+            {
+                ProfileId = id,
+                SpiritId = sp.SpiritId,
+                Sentiment = sp.Sentiment
+            };
 
-        // TODO: same idea looping through request.FlavorPreferences
+            _context.ProfileSpiritPreferences.Add(newSpiritPreference);
+        }
 
-        // TODO: same idea looping through request.Allergens (just ProfileId + Name this time)
+        foreach (FlavorPreferenceInputDto fp in request.FlavorPreferences)
+        {
+            var newFlavorPreference = new ProfileFlavorPreference
+            {
+                ProfileId = id,
+                FlavorTagId = fp.FlavorTagId,
+                Sentiment = fp.Sentiment
+            };
 
-        // TODO: await _context.SaveChangesAsync(), then return Ok()
+            _context.ProfileFlavorPreferences.Add(newFlavorPreference);
+        }
+
+        foreach ( string a in request.Allergens)
+        {
+            var newAllergen = new ProfileAllergen
+            {                
+                ProfileId = id,
+                Name = a
+            };
+
+            _context.ProfileAllergens.Add(newAllergen);
+        }
+
+        await _context.SaveChangesAsync();
+        return NoContent();
     }
 }
