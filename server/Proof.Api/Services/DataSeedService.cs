@@ -16,7 +16,7 @@ public class DataSeedService
 
     private static readonly string[] FlavorTagNames =
     {
-        "Sweet", "Sour", "Bitter", "Citrus", "Herbal", "Spicy",
+        "Sweet", "Sour", "Bitter", "Citrus", "Herbal", "Spicy", "Spiced",
         "Smoky", "Floral", "Fruity", "Creamy", "Nutty", "Refreshing"
     };
 
@@ -34,27 +34,36 @@ public class DataSeedService
 
     private async Task SeedSpiritsAsync()
     {
-        if (await _context.Spirits.AnyAsync())
-        {
-            return;
-        }
+        // Check which names already exist (one query), then only add the ones
+        // that don't — rather than bailing out entirely if the table has
+        // *anything* in it. That way, adding a new name to the list above
+        // later still gets it seeded on the next startup, instead of being
+        // silently skipped just because the table already has older data.
+        var existingNames = await _context.Spirits
+            .Select(s => s.Name)
+            .ToListAsync();
 
         foreach (var name in SpiritNames)
         {
-            _context.Spirits.Add(new Spirit { Name = name });
+            if (!existingNames.Contains(name))
+            {
+                _context.Spirits.Add(new Spirit { Name = name });
+            }
         }
     }
 
     private async Task SeedFlavorTagsAsync()
     {
-        if (await _context.FlavorTags.AnyAsync())
-        {
-            return;
-        }
+        var existingNames = await _context.FlavorTags
+            .Select(f => f.Name)
+            .ToListAsync();
 
         foreach (var name in FlavorTagNames)
         {
-            _context.FlavorTags.Add(new FlavorTag { Name = name });
+            if (!existingNames.Contains(name))
+            {
+                _context.FlavorTags.Add(new FlavorTag { Name = name });
+            }
         }
     }
 }
