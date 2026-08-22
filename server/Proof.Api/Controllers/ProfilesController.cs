@@ -26,6 +26,13 @@ public class ProfilesController : ControllerBase
         return Guid.Parse(accountIdClaim);
     }
 
+    private async Task<Profile?> GetOwnedProfileAsync(Guid profileId)
+    {
+        var accountId = GetAccountId();
+        return await _context.Profiles
+            .FirstOrDefaultAsync(p => p.Id == profileId && p.AccountId == accountId);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetProfiles()
     {
