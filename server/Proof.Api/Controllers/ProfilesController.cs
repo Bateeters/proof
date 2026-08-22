@@ -120,4 +120,32 @@ public class ProfilesController : ControllerBase
 
         return Ok(profilePreferencesDto);
     }
+
+    [HttpPut("{id}/preferences")]
+    public async Task<IActionResult> UpdatePreferences(Guid id, UpdateProfilePreferencesDto request)
+    {
+        var profile = await GetOwnedProfileAsync(id);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        var existingSpiritPreferences = await _context.ProfileSpiritPreferences
+            .Where(sp => sp.ProfileId == id)
+            .ToListAsync();
+        _context.ProfileSpiritPreferences.RemoveRange(existingSpiritPreferences);
+
+        // TODO: same two-setp delete for _context.ProfileFlavorPreferences
+
+        // TODO: same two-step delete for _context.ProfileAllergens
+
+        // TODO: loop through request.SpiritPreferences, and for each one, Add a new
+        // ProfileSpiritPreference (ProfileId = id, SpiritId = ..., Sentiment = ...)
+
+        // TODO: same idea looping through request.FlavorPreferences
+
+        // TODO: same idea looping through request.Allergens (just ProfileId + Name this time)
+
+        // TODO: await _context.SaveChangesAsync(), then return Ok()
+    }
 }
