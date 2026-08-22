@@ -17,6 +17,7 @@ Ingredient 1---* IngredientSubstitution (as Replacement)
 
 Cocktail 1---* CocktailIngredient *---1 Ingredient
 Cocktail 1---* CocktailSeason
+Cocktail *---* FlavorTag          (via CocktailFlavorTag — derived from ingredient tags, see design note)
 Cocktail *---1 Profile            (OwnerProfileId, nullable — only set for custom recipes)
 
 Profile 1---* CookbookEntry *---1 Cocktail
@@ -113,6 +114,14 @@ Cocktail ↔ Season, many-to-many — a cocktail can belong to multiple seasons 
 |---|---|
 | CocktailId | FK |
 | Season | enum: `Spring` / `Summer` / `Fall` / `Winter` |
+
+### CocktailFlavorTag (join)
+Cocktail ↔ FlavorTag, many-to-many — a cocktail's *own* flavor profile, distinct from `IngredientFlavorTag` (which tags individual ingredients). Added 2026-08-22, Brian's design call: this is deliberately *not* the union of every ingredient's flavor tags — that would be noisy and often self-contradictory (a mostly-sweet drink with one ingredient added just to balance it shouldn't read as both "Sweet" and "Sour"). Populated by a second heuristic that runs after ingredient-level tagging exists, aggregating a cocktail's full ingredient list down to whichever flavors are actually *prominent* (e.g. contributed by multiple ingredients), dropping ones that only came from a single minor ingredient. Same underlying mechanism will apply automatically to future custom recipes (Phase-2 feature) — no manual curation needed, since it's fully computed from whatever ingredients a recipe lists.
+
+| Field | Notes |
+|---|---|
+| CocktailId | FK |
+| FlavorTagId | FK |
 
 ### IngredientSubstitution
 The seeded rule table that powers the substitution engine (Phase 8). Curated data, not user-generated for MVP.
