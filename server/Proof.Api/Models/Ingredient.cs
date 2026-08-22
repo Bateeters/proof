@@ -8,4 +8,5 @@ public class Ingredient
     public IngredientType Type { get; set; }
     public CostTier CostTier { get; set; }
     public AvailabilityTier AvailabilityTier { get; set; }
+    public ICollection<IngredientFlavorTag> FlavorTags { get; set; } = new List<IngredientFlavorTag>();
 }
