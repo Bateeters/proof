@@ -76,4 +76,48 @@ public class ProfilesController : ControllerBase
             CreatedAt = newProfile.CreatedAt
         });
     }
+
+    [HttpGet("{id}/preferences")]
+    public async Task<IActionResult> GetPreferences(Guid id)
+    {
+        var profile = await GetOwnedProfileAsync(id);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        var spiritPreferences = await _context.ProfileSpiritPreferences
+            .Where(sp => sp.ProfileId == id)
+            .Select(sp => new SpiritPreferenceDto
+            {
+                SpiritId = sp.SpiritId,
+                SpiritName = sp.Spirit.Name,
+                Sentiment = sp.Sentiment
+            })
+            .ToListAsync();
+
+        var flavorPreferences = await _context.ProfileFlavorPreferences
+            .Where(fp => fp.ProfileId == id)
+            .Select(fp => new FlavorPreferenceDto
+            {
+                FlavorTagId = fp.FlavorTagId,
+                FlavorTagName = fp.FlavorTag.Name,
+                Sentiment = fp.Sentiment
+            })
+            .ToListAsync();
+
+        var allergens = await _context.ProfileAllergens
+            .Where(a => a.ProfileId == id)
+            .Select(a => a.Name)
+            .ToListAsync();
+
+        var profilePreferencesDto = new ProfilePreferencesDto
+        {
+            SpiritPreferences = spiritPreferences,
+            FlavorPreferences = flavorPreferences,
+            Allergens = allergens
+        };
+
+        return Ok(profilePreferencesDto);
+    }
 }
