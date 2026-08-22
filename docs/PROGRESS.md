@@ -4,6 +4,30 @@ Running session-by-session log. Newest entry on top. Purpose: let any session (e
 
 ---
 
+## 2026-08-09 to 2026-08-22 — Phase 6, part 1: taste preferences data + CRUD
+
+Session resumed after a ~2 week gap (Brian stepped away, came back not remembering recent details) — confirmed `git status` clean and all prior work committed, walked through `PROGRESS.md`/`ROADMAP.md` to re-orient instead of re-deriving from conversation history. Worth noting for future sessions: this worked well as a pattern and is exactly what these docs are for.
+
+**Did:**
+- Confirmed with Brian that data-layer steps (lookup tables, preference entities, ingredient flavor-tagging) don't actually depend on the ranking algorithm's design — they're prerequisite plumbing regardless of scoring approach — so proceeded with data first, ranking design conversation deferred until there's real data to reason about concretely.
+- Brian built `Spirit`/`FlavorTag` entities and a shared `Sentiment` enum (`Positive`/`Negative` — one enum reused for both spirit and flavor preferences rather than two near-identical ones, same "duplicate shape isn't duplicate concept" judgment call as `RegisterRequestDto`/`LoginRequestDto`, applied in the other direction this time).
+- I built `DataSeedService` (12 spirits, 12 flavor tags) wired into `Program.cs` startup via a manually-created DI scope — documented in `ARCHITECTURE.md`. Verified idempotent by restarting the server and confirming row counts didn't change.
+- Brian built `ProfileSpiritPreference`, `ProfileFlavorPreference`, `ProfileAllergen` entities (third time through the join-entity shape, went smoothly) plus reverse collection navigation on `Profile` (I added, mechanical).
+- Brian built Six DTOs (3 output, 3 input) for preferences. Genuinely good back-and-forth on *why* `required` applies differently to `ProfilePreferencesDto`'s lists (empty list ≠ null — a profile with no preferences set has real, empty lists, not missing ones) versus why `SpiritPreferenceInputDto.SpiritId`/`Sentiment` needed `required` when no other `Guid` field in the project has needed it before (verified empirically that `required` **is** enforced by `System.Text.Json` even on value types, not just reference types) — Brian asked precise, well-targeted "why" questions throughout rather than just applying the fix.
+- Brian built `GET`/`PUT /api/profiles/{id}/preferences` on `ProfilesController`. Added a reusable `GetOwnedProfileAsync()` helper (I wrote it) enforcing that a profile's preferences can only be read/edited by the account that owns it — same enumeration-safe `404` reasoning as Login. `GET` needed one new nuance (direct `.Select()` projection through a navigation property doesn't need `.Include()` first, unlike `CocktailsController`'s eager-loading approach). `PUT` is a wholesale replace (delete existing rows via `RemoveRange`, then re-`Add` the submitted set) rather than a diff/patch, returning `204 No Content` rather than round-tripping a `GET`-shaped response (the input DTOs only carry ids, not names, so returning the full `ProfilePreferencesDto` would mean re-querying anyway).
+- Full end-to-end verification: `PUT` a preference set, `GET` confirms it, `PUT` a *different* set, `GET` confirms the old one is gone and only the new one is present — proves the replace behavior actually replaces, not just adds.
+
+**Real bugs hit and fixed this phase:**
+- `ProfilePreferencesDto` namespace typo (`Proof.Api.Dto`, singular) — compiled clean at the time since nothing referenced it yet; would have surfaced as a confusing "type not found" only once `ProfilesController` tried to use it. Caught and fixed proactively before it became a live problem.
+- Several rounds of DTO/entity confusion in the `PUT` loops (constructing `SpiritPreferenceDto` — the *output* shape — instead of `ProfileSpiritPreference`, the actual entity) and a misplaced `SaveChangesAsync()` call mid-method instead of at the end. Both resolved through the same "compare against the working block right above it" technique that's worked well before.
+
+**Mentoring notes:** The `GetPreferences` endpoint hit the same "I'm lost" pattern as `CocktailsController` last phase, but recovered faster — one fully-worked example (the spirit-preferences query) was enough for Brian to correctly replicate the other two independently, rather than needing every piece explained. Good sign the "dense controller → slow down, one worked example, then replicate" technique from the last mentoring-notes update is actually working as intended.
+
+**Next:**
+- Phase 6, part 2: the ingredient flavor-tagging heuristic (same shape of problem as `SeasonHeuristic` — 327 ingredients, no flavor data from TheCocktailDB, needs a keyword-based heuristic), then the taste-based ranking algorithm itself (the actual centerpiece of this phase), then frontend for setting preferences and viewing ranked results.
+
+---
+
 ## 2026-07-23 to 2026-08-06 — Phase 5: TheCocktailDB sync + discovery
 
 **Did:**

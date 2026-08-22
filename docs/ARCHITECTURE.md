@@ -74,6 +74,10 @@ Every feature endpoint after auth operates in the context of an *active profile*
 
 Established in Phase 1 (`AccountsController`): every endpoint returns a **DTO** (`DTOs/`), never an EF Core entity straight from `Models/`. The entity is the database's shape; the DTO is what's safe to hand to a client. This isn't optional per-endpoint judgment — `Account` has `PasswordHash` on it today, and any future entity could end up with its own field that shouldn't leave the server, so the rule is applied uniformly rather than decided case-by-case. Pattern: query entities via the `DbContext`, project to a DTO (typically via LINQ `.Select(...)`), return the DTO.
 
+## Reference-data seeding
+
+`Spirit` and `FlavorTag` (Phase 6) are curated lookup lists, not user- or sync-generated data. Rather than EF Core's migration-embedded `HasData()` (which requires deterministic ids baked into the migration itself and hasn't been needed anywhere else in this project), seeding happens in `DataSeedService`, run once at app startup in `Program.cs` via a manually-created DI scope (`app.Services.CreateScope()` — startup code runs before any HTTP request exists to hang a scoped `DbContext` off of, so one has to be created by hand). Each seed method checks `AnyAsync()` before inserting, so re-running (e.g. every local `dotnet run`) is a no-op once the data exists — verified by restarting the server and confirming row counts didn't change.
+
 ## Where things live
 
 See the root README for how to run everything locally. Folder structure is documented in [ROADMAP.md](./ROADMAP.md) phase 0 and reflected directly in the repo.

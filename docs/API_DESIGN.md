@@ -25,8 +25,8 @@ All endpoints except `/auth/*` require `Authorization: Bearer <jwt>`.
 |---|---|---|---|
 | GET | `/profiles` | — | **Requires auth.** Lists profiles under the authenticated account — account identified via the JWT's `sub` claim (see `ProfilesController.GetAccountId()`), not a route param or request body. Projected through `ProfileDto` (id/displayName/avatarColor/createdAt). |
 | POST | `/profiles` | `{ displayName, avatarColor? }` | **Requires auth.** Creates a profile under the authenticated account. `avatarColor` is optional, defaults to `"gray"` server-side if omitted. `accountId` is deliberately *not* part of the request body — it always comes from the token, never from client-supplied data, so one account can never create a profile under another. |
-
-Taste preference endpoints (`/profiles/{id}/preferences`) moved to Phase 6 — see `docs/ROADMAP.md`. Preferences are only meaningful once the ranking logic that consumes them exists, so they're built together rather than in isolation.
+| GET | `/profiles/{id}/preferences` | — | **Requires auth + ownership.** Returns spirit preferences, flavor preferences, and allergens for the given profile — `ProfilePreferencesDto`, always real (possibly empty) lists, never `null`. `404` if the profile doesn't exist *or* belongs to a different account — same non-distinguishing response either way, same reasoning as Login's identical failure for both wrong-password and no-such-email. |
+| PUT | `/profiles/{id}/preferences` | `UpdateProfilePreferencesDto` (`{ spiritPreferences, flavorPreferences, allergens }`, ids not names) | **Requires auth + ownership.** Wholesale replace, not a diff/patch — deletes every existing preference/allergen row for the profile, then inserts the submitted set. Returns `204 No Content` (a full round-trip `GET` after a successful `PUT` would need to re-query for spirit/flavor names anyway, since the request only carries ids). |
 
 ## Cocktails / Discovery
 
