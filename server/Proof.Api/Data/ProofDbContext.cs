@@ -17,5 +17,6 @@ public class ProofDbContext : DbContext
     public DbSet<ProfileFlavorPreference> ProfileFlavorPreferences { get; set; }
     public DbSet<ProfileAllergen> ProfileAllergens { get; set; }
     public DbSet<IngredientFlavorTag> IngredientFlavorTags { get; set; }
+    public DbSet<CocktailFlavorTag> CocktailFlavorTags { get; set; }
     public ProofDbContext(DbContextOptions<ProofDbContext> options) : base(options) {}
 }

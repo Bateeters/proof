@@ -24,6 +24,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<DataSeedService>();
 builder.Services.AddScoped<IngredientFlavorTagSyncService>();
+builder.Services.AddScoped<CocktailFlavorTagSyncService>();
 builder.Services.AddHttpClient<CocktailDbSyncService>(client =>
 {
     client.BaseAddress = new Uri("https://www.thecocktaildb.com/api/json/v1/1/");

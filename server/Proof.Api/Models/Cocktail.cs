@@ -18,4 +18,5 @@ public class Cocktail
     // e.g. c.CocktailSeasons.Any(...) or .Include(c => c.CocktailIngredients).
     public ICollection<CocktailIngredient> CocktailIngredients { get; set; } = new List<CocktailIngredient>();
     public ICollection<CocktailSeason> CocktailSeasons { get; set; } = new List<CocktailSeason>();
+    public ICollection<CocktailFlavorTag> CocktailFlavorTags { get; set; } = new List<CocktailFlavorTag>();
 }
