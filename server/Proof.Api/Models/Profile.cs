@@ -12,4 +12,5 @@ public class Profile
     public ICollection<ProfileSpiritPreference> SpiritPreferences { get; set; } = new List<ProfileSpiritPreference>();
     public ICollection<ProfileFlavorPreference> FlavorPreferences { get; set; } = new List<ProfileFlavorPreference>();
     public ICollection<ProfileAllergen> Allergens { get; set; } = new List<ProfileAllergen>();
+    public ICollection<CookbookEntry> CookbookEntries { get; set; } = new List<CookbookEntry>();
 }

@@ -2,9 +2,12 @@ import { useState } from "react";
 import type { SubmitEvent } from "react";
 import type { CocktailDetail, CocktailSummary } from "../types/Cocktail";
 import { useAuth } from "../context/AuthContext";
+import { useProfiles } from "../context/ProfileContext";
 
 export function CocktailDiscovery() {
     const { token } = useAuth();
+    const { activeProfile } = useProfiles();
+    const [saveMessage, setSaveMessage] = useState('');
     const [search, setSearch] = useState('');
     const [category, setCategory] = useState('');
     const [season, setSeason] = useState('');
@@ -27,11 +30,27 @@ export function CocktailDiscovery() {
     }
 
     async function handleSelectCocktail(id: string) {
+        setSaveMessage('');
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails/${id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
             .then(data => setSelectedCocktail(data));
+    }
+
+    async function handleSaveToCookbook() {
+        if (!activeProfile || !selectedCocktail) return;
+
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profiles/${activeProfile.id}/cookbook`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ cocktailId: selectedCocktail.id }),
+        });
+
+        setSaveMessage('Saved to cookbook!');
     }
 
     if (selectedCocktail) {
@@ -49,6 +68,12 @@ export function CocktailDiscovery() {
                     ))}
                 </ul>
                 <p>{selectedCocktail.instructions}</p>
+                {activeProfile && (
+                    <div>
+                        <button onClick={handleSaveToCookbook}>Save To Cookbook</button>
+                        {saveMessage && <span> {saveMessage}</span>}
+                    </div>
+                )}
             </div>
         );
     }

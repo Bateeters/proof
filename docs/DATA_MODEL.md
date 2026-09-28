@@ -140,7 +140,7 @@ The seeded rule table that powers the substitution engine (Phase 8). Curated dat
 A single source ingredient can have multiple rows here (different replacement per reason).
 
 ### CookbookEntry
-A saved recipe, private to a Profile.
+A saved recipe, private to a Profile. Built 2026-09-28 (Phase 7) — `POST` upserts on `(ProfileId, CocktailId)` (re-saving updates `Notes` rather than duplicating the row or erroring), enforced at the application level the same way every other join table in this project handles uniqueness (check-then-insert), not a DB-level constraint — consistent with the rest of the codebase rather than introducing a new pattern for one table.
 
 | Field | Notes |
 |---|---|

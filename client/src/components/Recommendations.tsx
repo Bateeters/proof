@@ -21,6 +21,19 @@ export function Recommendations() {
         setLoaded(true);
     }
 
+    async function handleSaveToCookbook(cocktailId: string) {
+        if (!activeProfile) return;
+
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profiles/${activeProfile.id}/cookbook`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ cocktailId }),
+        });
+    }
+
     if (!activeProfile) {
         return <p>Select a profile to see recommendations.</p>;
     }
@@ -39,6 +52,8 @@ export function Recommendations() {
                     {ranked.map(cocktail => (
                         <li key={cocktail.id}>
                             <strong>{cocktail.name}</strong> | {cocktail.category} | match score: {cocktail.matchScore}
+                            {' '}
+                            <button onClick={() => handleSaveToCookbook(cocktail.id)}>Save To Cookbook</button>
                         </li>
                     ))}
                 </ul>

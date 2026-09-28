@@ -19,4 +19,5 @@ public class Cocktail
     public ICollection<CocktailIngredient> CocktailIngredients { get; set; } = new List<CocktailIngredient>();
     public ICollection<CocktailSeason> CocktailSeasons { get; set; } = new List<CocktailSeason>();
     public ICollection<CocktailFlavorTag> CocktailFlavorTags { get; set; } = new List<CocktailFlavorTag>();
+    public ICollection<CookbookEntry> CookbookEntries { get; set; } = new List<CookbookEntry>();
 }

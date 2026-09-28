@@ -5,6 +5,7 @@ import { ProfileSwitcher } from './components/ProfileSwitcher'
 import { CocktailDiscovery } from './components/CocktailDiscovery'
 import { PreferencesEditor } from './components/PreferencesEditor'
 import { Recommendations } from './components/Recommendations'
+import { Cookbook } from './components/Cookbook'
 import { useAuth } from './context/AuthContext'
 import { useProfiles } from './context/ProfileContext'
 import './App.css'
@@ -25,6 +26,7 @@ function App() {
           <CocktailDiscovery />
           <PreferencesEditor />
           <Recommendations />
+          <Cookbook />
           <AccountsList />
         </div>
       ) : (

@@ -199,4 +199,91 @@ public class ProfilesController : ControllerBase
         var ranked = await _tasteRankingService.RankCocktailsForProfileAsync(id);
         return Ok(ranked);
     }
+
+    [HttpGet("{id}/cookbook")]
+    public async Task<IActionResult> GetCookbook(Guid id)
+    {
+        var profile = await GetOwnedProfileAsync(id);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        var entries = await _context.CookbookEntries
+            .Where(e => e.ProfileId == id)
+            .OrderByDescending(e => e.SavedAt)
+            .Select(e => new CookbookEntryDto
+            {
+                CocktailId = e.CocktailId,
+                CocktailName = e.Cocktail.Name,
+                CocktailCategory = e.Cocktail.Category,
+                CocktailImageUrl = e.Cocktail.ImageUrl,
+                SavedAt = e.SavedAt,
+                Notes = e.Notes
+            })
+            .ToListAsync();
+
+        return Ok(entries);
+    }
+
+    [HttpPost("{id}/cookbook")]
+    public async Task<IActionResult> SaveCookbookEntry(Guid id, SaveCookbookEntryDto request)
+    {
+        var profile = await GetOwnedProfileAsync(id);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        var cocktailExists = await _context.Cocktails.AnyAsync(c => c.Id == request.CocktailId);
+        if (!cocktailExists)
+        {
+            return NotFound();
+        }
+
+        var existingEntry = await _context.CookbookEntries
+            .FirstOrDefaultAsync(e => e.ProfileId == id && e.CocktailId == request.CocktailId);
+
+        // Saving a cocktail that's already in the cookbook updates the notes
+        // instead of creating a duplicate row — re-saving to change a note is
+        // more useful than erroring or silently duplicating the entry.
+        if (existingEntry != null)
+        {
+            existingEntry.Notes = request.Notes;
+        }
+        else
+        {
+            _context.CookbookEntries.Add(new CookbookEntry
+            {
+                ProfileId = id,
+                CocktailId = request.CocktailId,
+                Notes = request.Notes
+            });
+        }
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpDelete("{id}/cookbook/{cocktailId}")]
+    public async Task<IActionResult> RemoveCookbookEntry(Guid id, Guid cocktailId)
+    {
+        var profile = await GetOwnedProfileAsync(id);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        var entry = await _context.CookbookEntries
+            .FirstOrDefaultAsync(e => e.ProfileId == id && e.CocktailId == cocktailId);
+
+        if (entry == null)
+        {
+            return NotFound();
+        }
+
+        _context.CookbookEntries.Remove(entry);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
 }
