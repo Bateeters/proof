@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Proof.Api.Data;
 using Proof.Api.DTOs;
 using Proof.Api.Models;
+using Proof.Api.Services;
 
 namespace Proof.Api.Controllers;
 
@@ -14,10 +15,12 @@ namespace Proof.Api.Controllers;
 public class CocktailsController : ControllerBase
 {
     private readonly ProofDbContext _context;
+    private readonly WhatCanIMakeService _whatCanIMakeService;
 
-    public CocktailsController(ProofDbContext context)
+    public CocktailsController(ProofDbContext context, WhatCanIMakeService whatCanIMakeService)
     {
         _context = context;
+        _whatCanIMakeService = whatCanIMakeService;
     }
 
     [HttpGet]
@@ -88,5 +91,13 @@ public class CocktailsController : ControllerBase
         };
 
         return Ok(cocktailDetailDto);
+    }
+
+    [HttpGet("what-can-i-make")]
+    public async Task<IActionResult> WhatCanIMake([FromQuery] string? ingredients)
+    {
+        var ingredientNames = (ingredients ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var results = await _whatCanIMakeService.FindMakeableCocktailsAsync(ingredientNames);
+        return Ok(results);
     }
 }
