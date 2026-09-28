@@ -12,15 +12,18 @@ public class AdminController : ControllerBase
     private readonly CocktailDbSyncService _syncService;
     private readonly IngredientFlavorTagSyncService _flavorTagSyncService;
     private readonly CocktailFlavorTagSyncService _cocktailFlavorTagSyncService;
+    private readonly IngredientSpiritSyncService _ingredientSpiritSyncService;
 
     public AdminController(
         CocktailDbSyncService syncService,
         IngredientFlavorTagSyncService flavorTagSyncService,
-        CocktailFlavorTagSyncService cocktailFlavorTagSyncService)
+        CocktailFlavorTagSyncService cocktailFlavorTagSyncService,
+        IngredientSpiritSyncService ingredientSpiritSyncService)
     {
         _syncService = syncService;
         _flavorTagSyncService = flavorTagSyncService;
         _cocktailFlavorTagSyncService = cocktailFlavorTagSyncService;
+        _ingredientSpiritSyncService = ingredientSpiritSyncService;
     }
 
     [HttpPost("sync-cocktails")]
@@ -42,5 +45,12 @@ public class AdminController : ControllerBase
     {
         var tagsAdded = await _cocktailFlavorTagSyncService.TagAllCocktailsAsync();
         return Ok(new { tagsAdded });
+    }
+
+    [HttpPost("identify-ingredient-spirits")]
+    public async Task<IActionResult> IdentifyIngredientSpirits()
+    {
+        var ingredientsMatched = await _ingredientSpiritSyncService.IdentifyAllIngredientSpiritsAsync();
+        return Ok(new { ingredientsMatched });
     }
 }

@@ -59,6 +59,9 @@ All routes below **require the `Admin` role**, not just being logged in (`[Autho
 | POST | `/admin/sync-cocktails` | Runs `CocktailDbSyncService`: walks TheCocktailDB's `search.php?f=<letter>` for a–z, adds any cocktails not already synced (matched by `ExternalId`), dedupes ingredients by name, and assigns seasons via `SeasonHeuristic`. Safe to re-run — already-synced cocktails are skipped. Returns `{ cocktailsAdded }`. |
 | POST | `/admin/tag-ingredient-flavors` | Runs `IngredientFlavorTagSyncService`: wholesale-replaces `IngredientFlavorTags` by re-running `IngredientFlavorHeuristic` against every `Ingredient`. Safe to re-run after keyword-list changes — always reflects the current heuristic, never accumulates stale tags. Returns `{ tagsAdded }`. |
 | POST | `/admin/tag-cocktail-flavors` | Runs `CocktailFlavorTagSyncService`: wholesale-replaces `CocktailFlavorTags` using the "half of max" prominence rule over each cocktail's `IngredientFlavorTags` (see `DATA_MODEL.md`). Depends on ingredient-level tagging already being up to date — re-run `tag-ingredient-flavors` first if keyword lists changed. Returns `{ tagsAdded }`. |
+| POST | `/admin/identify-ingredient-spirits` | Runs `IngredientSpiritSyncService`: sets (or clears) `Ingredient.SpiritId` for every ingredient via `IngredientSpiritHeuristic`. Safe to re-run — always reflects the current heuristic. Returns `{ ingredientsMatched }`. |
+
+**Sync/tagging order matters on a fresh database:** `sync-cocktails` first (creates `Ingredient`/`Cocktail` rows), then `tag-ingredient-flavors` and `identify-ingredient-spirits` (either order, both only depend on `Ingredient`), then `tag-cocktail-flavors` last (depends on ingredient-level flavor tags already existing).
 
 ## Conventions
 

@@ -50,6 +50,8 @@ A sub-user under an Account (like a Netflix profile). This is the entity everyth
 ### Spirit (lookup table)
 Reference list: bourbon, gin, rum, tequila, vodka, whiskey, etc. Seeded data, not user-editable.
 
+**`Ingredient.SpiritId` (added 2026-09-28)** — nullable FK, `Ingredient → Spirit`. Closes a real gap found while designing taste ranking: `ProfileSpiritPreference` links to the clean 12-entry `Spirit` table, but a cocktail's actual ingredients are `Ingredient` rows with free-form names (`"Coconut rum"`, `"Jim Beam"`, `"Absolut Citron"`) — without this link there'd be no way to connect a cocktail containing those to a profile's stated Rum/Bourbon/Vodka preference, which would make spirit preferences nearly useless for ranking. Populated by `IngredientSpiritSyncService` running `IngredientSpiritHeuristic` (same keyword-matching mechanism as `IngredientFlavorHeuristic`, factored into a shared `IngredientKeywordMatcher` since it's now used twice) — a single nullable best match per ingredient, not a set, since an ingredient can only be one spirit at most. Specific spirits (Bourbon, Scotch, Cognac) are checked before generic buckets they could fall into (Whiskey, Brandy) so brand names map to the more specific category (e.g. "Jim Beam" → Bourbon, not Whiskey). Verified against real data: 64 of 327 ingredients matched.
+
 ### ProfileSpiritPreference
 | Field | Notes |
 |---|---|

@@ -86,84 +86,59 @@ public static class IngredientFlavorHeuristic
     {
         var flavorTag = new HashSet<string>();
 
-        if (MatchesAnyKeyword(ingredientName, SweetKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, SweetKeywords))
         {
             flavorTag.Add("Sweet");
         }
-        if (MatchesAnyKeyword(ingredientName, SourKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, SourKeywords))
         {
             flavorTag.Add("Sour");
         }
-        if (MatchesAnyKeyword(ingredientName, BitterKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, BitterKeywords))
         {
             flavorTag.Add("Bitter");
         }
-        if (MatchesAnyKeyword(ingredientName, CitrusKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, CitrusKeywords))
         {
             flavorTag.Add("Citrus");
         }
-        if (MatchesAnyKeyword(ingredientName, HerbalKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, HerbalKeywords))
         {
             flavorTag.Add("Herbal");
         }
-        if (MatchesAnyKeyword(ingredientName, SpicyKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, SpicyKeywords))
         {
             flavorTag.Add("Spicy");
         }
-        if (MatchesAnyKeyword(ingredientName, SpicedKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, SpicedKeywords))
         {
             flavorTag.Add("Spiced");
         }
-        if (MatchesAnyKeyword(ingredientName, SmokyKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, SmokyKeywords))
         {
             flavorTag.Add("Smoky");
         }
-        if (MatchesAnyKeyword(ingredientName, FloralKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, FloralKeywords))
         {
             flavorTag.Add("Floral");
         }
-        if (MatchesAnyKeyword(ingredientName, FruityKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, FruityKeywords))
         {
             flavorTag.Add("Fruity");
         }
-        if (MatchesAnyKeyword(ingredientName, CreamyKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, CreamyKeywords))
         {
             flavorTag.Add("Creamy");
         }
-        if (MatchesAnyKeyword(ingredientName, NuttyKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, NuttyKeywords))
         {
             flavorTag.Add("Nutty");
         }
-        if (MatchesAnyKeyword(ingredientName, RefreshingKeywords))
+        if (IngredientKeywordMatcher.MatchesAnyKeyword(ingredientName, RefreshingKeywords))
         {
             flavorTag.Add("Refreshing");
         }
 
         return flavorTag;
-    }
-
-    private static bool MatchesAnyKeyword(string ingredient, string[] keywords)
-    {
-        var words = ingredient.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var keyword in keywords)
-        {
-            if (keyword.Contains(' '))
-            {
-                if (ingredient.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                if (words.Contains(keyword, StringComparer.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-        }
-        
-        return false;
     }
 }
