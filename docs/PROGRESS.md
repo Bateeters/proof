@@ -15,6 +15,12 @@ Running session-by-session log. Newest entry on top. Purpose: let any session (e
 
 **Next:** design and build the taste-based ranking algorithm itself (the Phase 6 centerpiece) — now unblocked since both ingredient- and cocktail-level flavor data exist and are verified — then the frontend for setting preferences and viewing ranked results.
 
+**Update, same session:** Brian asked to finish the entire remaining roadmap (Phases 6–10; Phase 11/LLM substitution explicitly deferred to "next version" — no funded API access yet) rather than pause after each phase, given time constraints. Continued:
+- Closed the Ingredient↔Spirit gap: `Ingredient.SpiritId` + `IngredientSpiritHeuristic`, same keyword-matching mechanism as flavor tagging (extracted into a shared `IngredientKeywordMatcher` since it's now used twice — first real refactor-for-DRY in this codebase). Verified: 64 of 327 ingredients matched, including every brand-name edge case (Jim Beam/Wild Turkey → Bourbon not Whiskey, Absolut flavors → Vodka, Cachaca correctly left unmapped).
+- Built `TasteRankingService` (`GET /api/profiles/{id}/recommendations`): hard-excludes cocktails matching a profile's allergens (`AllergenHeuristic`, free-text matched via curated category keywords + direct fallback) — Brian's explicit call that allergens are a safety filter, not a score penalty — then scores survivors on spirit (±2) and flavor (±1) preferences. Verified against real data (Alexander scores exactly -3 for Dislikes-Gin/Avoids-Creamy; "dairy" allergen drops 88/426 cocktails entirely).
+- Fixed enum JSON serialization globally (strings, not raw ints) — caught while testing the preferences endpoint by hand.
+- Working-relationship note: this is the first session under the autonomous-build mode described above — data layer + backend algorithm work went smoothly without hint-scaffolding since it's straightforward extension of already-established patterns; frontend work next.
+
 ---
 
 ## 2026-08-09 to 2026-08-22 — Phase 6, part 1: taste preferences data + CRUD
