@@ -11,9 +11,9 @@ Phased build order. Each phase = a concept explanation, a scaffolding step (done
 | 4 | Profiles (multi-profile CRUD, active-profile switching) | Nested resource design, frontend context/state | ✅ done |
 | 5 | TheCocktailDB sync + discovery (browse/search, seasonal toggle) | External API integration, background jobs, caching | ✅ done |
 | 6 | Taste preferences + taste-based ranking *(challenge brief)* | Lookup tables/join entities, scoring/ranking algorithms | ✅ done |
-| 7 | Personal cookbook (save/list/remove) | CRUD on a relationship, ownership/privacy checks | ⬜ not started |
-| 8 | Substitution engine *(challenge brief)* | Rule-lookup systems, conditional branching UX | ⬜ not started |
-| 9 | "What Can I Make?" *(challenge brief)* | Set logic, SQL joins, ranking by closeness | ⬜ not started |
+| 7 | Personal cookbook (save/list/remove) | CRUD on a relationship, ownership/privacy checks | ✅ done |
+| 8 | Substitution engine *(challenge brief)* | Rule-lookup systems, conditional branching UX | ✅ done |
+| 9 | "What Can I Make?" *(challenge brief)* | Set logic, SQL joins, ranking by closeness | ✅ done |
 | 10 | Polish (theme, empty states, responsive pass) | CSS systems, copywriting-as-UX | ⬜ not started |
 | 11 | Stretch: LLM-backed substitution | Prompting, provider integration | ⬜ not started |
 
