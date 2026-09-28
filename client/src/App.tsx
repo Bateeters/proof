@@ -6,6 +6,7 @@ import { CocktailDiscovery } from './components/CocktailDiscovery'
 import { PreferencesEditor } from './components/PreferencesEditor'
 import { Recommendations } from './components/Recommendations'
 import { Cookbook } from './components/Cookbook'
+import { WhatCanIMake } from './components/WhatCanIMake'
 import { useAuth } from './context/AuthContext'
 import { useProfiles } from './context/ProfileContext'
 import './App.css'
@@ -27,6 +28,7 @@ function App() {
           <PreferencesEditor />
           <Recommendations />
           <Cookbook />
+          <WhatCanIMake />
           <AccountsList />
         </div>
       ) : (
