@@ -32,6 +32,16 @@ Running session-by-session log. Newest entry on top. Purpose: let any session (e
 
 **Next:** Phase 10 (polish — theme, empty states, responsive pass). Phase 11 (LLM-backed substitution) explicitly deferred to "next version" per Brian, 2026-09-28 — no funded LLM API access yet.
 
+**Phase 10, same session:**
+- Removed the unused Vite-scaffold CSS that had sat untouched since Phase 0 (counter/hero/next-steps/docs sections — none of it was referenced by any real component).
+- Rebuilt `index.css`/`App.css` into a real cohesive system on the existing light/dark CSS-variable palette: app shell/header, card-style sections, consistent forms/buttons/lists, profile chips, danger-variant buttons, responsive breakpoint.
+- Restructured `App.tsx`'s flat 7-component stack into labeled sections — with this many features now built, an unstructured stack had become a real usability problem, not just a cosmetic one.
+- Filled remaining empty-state gaps (cocktail search, profile list, allergen list, What Can I Make) and added proper label/input pairing across every form.
+- **Security/privacy finding, fixed:** `AccountsList` listed every registered user's email to any logged-in user — fine as a Phase-1 learning scaffold, a real privacy leak in a real product. Removed from the visible app; backend endpoint left in place, flagged to Brian in case he wants it gone entirely.
+- Verified: `tsc -b` clean, `oxlint` clean (2 pre-existing warnings, unrelated files), both dev servers start and respond. Not yet visually verified in a browser by a human.
+
+**All of Phases 6–10 (the full core MVP roadmap) are now complete**, built in one continuous session under the autonomous-build mode described above, each phase verified against real data/behavior and committed separately on the `featureTesting` branch (not yet pushed — Brian wants to test locally first). Phase 11 deferred to next version.
+
 ---
 
 ## 2026-08-09 to 2026-08-22 — Phase 6, part 1: taste preferences data + CRUD

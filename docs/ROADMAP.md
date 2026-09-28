@@ -14,8 +14,8 @@ Phased build order. Each phase = a concept explanation, a scaffolding step (done
 | 7 | Personal cookbook (save/list/remove) | CRUD on a relationship, ownership/privacy checks | ✅ done |
 | 8 | Substitution engine *(challenge brief)* | Rule-lookup systems, conditional branching UX | ✅ done |
 | 9 | "What Can I Make?" *(challenge brief)* | Set logic, SQL joins, ranking by closeness | ✅ done |
-| 10 | Polish (theme, empty states, responsive pass) | CSS systems, copywriting-as-UX | ⬜ not started |
-| 11 | Stretch: LLM-backed substitution | Prompting, provider integration | ⬜ not started |
+| 10 | Polish (theme, empty states, responsive pass) | CSS systems, copywriting-as-UX | ✅ done |
+| 11 | Stretch: LLM-backed substitution | Prompting, provider integration | ⬜ deferred to next version — no funded LLM API access yet (Brian, 2026-09-28) |
 
 ## Phase 0 scope (current)
 
