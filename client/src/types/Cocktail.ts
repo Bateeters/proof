@@ -12,6 +12,7 @@ export type CocktailDetail = CocktailSummary & {
 }
 
 export type CocktailIngredient = {
+    ingredientId: string;
     ingredientName: string;
     measure: string | null;
 }

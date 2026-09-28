@@ -3,6 +3,7 @@ import type { SubmitEvent } from "react";
 import type { CocktailDetail, CocktailSummary } from "../types/Cocktail";
 import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfileContext";
+import { SubstitutionSuggester } from "./SubstitutionSuggester";
 
 export function CocktailDiscovery() {
     const { token } = useAuth();
@@ -64,6 +65,12 @@ export function CocktailDiscovery() {
                     {selectedCocktail.ingredients.map((ingredient, index) => (
                         <li key={index}>
                             {ingredient.measure} {ingredient.ingredientName}
+                            {' '}
+                            <SubstitutionSuggester
+                                cocktailId={selectedCocktail.id}
+                                ingredientId={ingredient.ingredientId}
+                                ingredientName={ingredient.ingredientName}
+                            />
                         </li>
                     ))}
                 </ul>

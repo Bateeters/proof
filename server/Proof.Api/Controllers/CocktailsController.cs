@@ -81,6 +81,7 @@ public class CocktailsController : ControllerBase
             Instructions = cocktail.Instructions,
             Ingredients = cocktail.CocktailIngredients.Select(ci => new CocktailIngredientDto
             {
+                IngredientId = ci.IngredientId,
                 IngredientName = ci.Ingredient.Name,
                 Measure = ci.Measure
             }).ToList()
