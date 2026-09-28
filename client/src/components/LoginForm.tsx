@@ -13,16 +13,24 @@ export function LoginForm() {
 
     return (
         <form onSubmit={handleSubmit}>
-            <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-            />
-            <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-            />
+            <div>
+                <label htmlFor="login-email">Email</label>
+                <input
+                    id="login-email"
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                />
+            </div>
+            <div>
+                <label htmlFor="login-password">Password</label>
+                <input
+                    id="login-password"
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                />
+            </div>
             <button type="submit">Log In</button>
         </form>
     )

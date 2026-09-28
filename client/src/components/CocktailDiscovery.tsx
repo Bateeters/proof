@@ -13,6 +13,7 @@ export function CocktailDiscovery() {
     const [category, setCategory] = useState('');
     const [season, setSeason] = useState('');
     const [results, setResults] = useState<CocktailSummary[]>([]);
+    const [hasSearched, setHasSearched] = useState(false);
     const [selectedCocktail, setSelectedCocktail] = useState<CocktailDetail | null>(null);
 
     async function handleSearch(e: SubmitEvent) {
@@ -27,7 +28,10 @@ export function CocktailDiscovery() {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
-            .then(data => setResults(data));
+            .then(data => {
+                setResults(data);
+                setHasSearched(true);
+            });
     }
 
     async function handleSelectCocktail(id: string) {
@@ -56,11 +60,13 @@ export function CocktailDiscovery() {
 
     if (selectedCocktail) {
         return (
-            <div>
-                <button onClick={() => setSelectedCocktail(null)}>Back To Results</button>
+            <div className="cocktail-detail">
+                <button className="button-secondary" onClick={() => setSelectedCocktail(null)}>Back To Results</button>
                 <h3>{selectedCocktail.name}</h3>
                 <p>{selectedCocktail.category} | {selectedCocktail.glass}</p>
-                <img src={selectedCocktail.imageUrl ?? undefined} alt={selectedCocktail.name} />
+                {selectedCocktail.imageUrl && (
+                    <img src={selectedCocktail.imageUrl} alt={selectedCocktail.name} />
+                )}
                 <ul>
                     {selectedCocktail.ingredients.map((ingredient, index) => (
                         <li key={index}>
@@ -88,54 +94,70 @@ export function CocktailDiscovery() {
     return (
         <div>
             <form onSubmit={handleSearch}>
-                <label>Drink Name:</label>
-                <input
-                    type="text"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                />
-                <label>Drink Category:</label>
-                <select
-                    value={category}
-                    onChange={e => setCategory(e.target.value)}
-                >
-                    <option value="">Any</option>
-                    <option value="Beer">Beer</option>
-                    <option value="Cocktail">Cocktail</option>
-                    <option value="Cocoa">Cocoa</option>
-                    <option value="Coffee / Tea">Coffee / Tea</option>
-                    <option value="Homemade Liqueur">Homemade Liqueur</option>
-                    <option value="Ordinary Drink">Ordinary Drink</option>
-                    <option value="Other / Unknown">Other / Unknown</option>
-                    <option value="Punch / Party Drink">Punch / Party Drink</option>
-                    <option value="Shake">Shake</option>
-                    <option value="Shot">Shot</option>
-                    <option value="Soft Drink">Soft Drink</option>
-                </select>
-                <label>Season:</label>
-                <select
-                    value={season}
-                    onChange={e => setSeason(e.target.value)}
-                >
-                    <option value="">Any</option>
-                    <option value="Spring">Spring</option>
-                    <option value="Summer">Summer</option>
-                    <option value="Fall">Fall</option>
-                    <option value="Winter">Winter</option>
-                </select>
+                <div>
+                    <label htmlFor="cocktail-search">Drink Name</label>
+                    <input
+                        id="cocktail-search"
+                        type="text"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="cocktail-category">Drink Category</label>
+                    <select
+                        id="cocktail-category"
+                        value={category}
+                        onChange={e => setCategory(e.target.value)}
+                    >
+                        <option value="">Any</option>
+                        <option value="Beer">Beer</option>
+                        <option value="Cocktail">Cocktail</option>
+                        <option value="Cocoa">Cocoa</option>
+                        <option value="Coffee / Tea">Coffee / Tea</option>
+                        <option value="Homemade Liqueur">Homemade Liqueur</option>
+                        <option value="Ordinary Drink">Ordinary Drink</option>
+                        <option value="Other / Unknown">Other / Unknown</option>
+                        <option value="Punch / Party Drink">Punch / Party Drink</option>
+                        <option value="Shake">Shake</option>
+                        <option value="Shot">Shot</option>
+                        <option value="Soft Drink">Soft Drink</option>
+                    </select>
+                </div>
+                <div>
+                    <label htmlFor="cocktail-season">Season</label>
+                    <select
+                        id="cocktail-season"
+                        value={season}
+                        onChange={e => setSeason(e.target.value)}
+                    >
+                        <option value="">Any</option>
+                        <option value="Spring">Spring</option>
+                        <option value="Summer">Summer</option>
+                        <option value="Fall">Fall</option>
+                        <option value="Winter">Winter</option>
+                    </select>
+                </div>
                 <button type="submit">Search</button>
             </form>
 
-            <ul>
-                {results.map((result) => (
-                    <li
-                        key={result.id}
-                        onClick={() => handleSelectCocktail(result.id)}
-                    >
-                        <strong>{result.name}</strong> | {result.category}
-                    </li>
-                ))}
-            </ul>
+            {hasSearched && results.length === 0 && (
+                <p className="empty-state">No cocktails match those filters.</p>
+            )}
+
+            {results.length > 0 && (
+                <ul>
+                    {results.map((result) => (
+                        <li
+                            key={result.id}
+                            className="cocktail-result"
+                            onClick={() => handleSelectCocktail(result.id)}
+                        >
+                            <strong>{result.name}</strong> | {result.category}
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 }

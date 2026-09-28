@@ -1,4 +1,3 @@
-import { AccountsList } from './components/AccountsList'
 import { LoginForm } from './components/LoginForm'
 import { RegisterForm } from './components/RegisterForm'
 import { ProfileSwitcher } from './components/ProfileSwitcher'
@@ -16,28 +15,61 @@ function App() {
   const { activeProfile } = useProfiles();
 
   return (
-    <div>
-      <h1>Proof</h1>
+    <div className="app-shell">
+      <header className="app-header">
+        <h1>Proof</h1>
+        {token && (
+          <div className="app-header-status">
+            <span>{account?.email}</span>
+            <span className="app-header-profile">
+              {activeProfile ? activeProfile.displayName : 'No profile selected'}
+            </span>
+            <button className="button-secondary" onClick={logout}>Log Out</button>
+          </div>
+        )}
+      </header>
+
       {token ? (
-        <div>
-          <p>Logged in as {account?.email}</p>
-          <p>Active profile: {activeProfile ? activeProfile.displayName : 'none selected'}</p>
-          <button onClick={logout}>Log Out</button>
-          <ProfileSwitcher />
-          <CocktailDiscovery />
-          <PreferencesEditor />
-          <Recommendations />
-          <Cookbook />
-          <WhatCanIMake />
-          <AccountsList />
-        </div>
+        <main className="app-main">
+          <section className="app-section" aria-label="Profiles">
+            <ProfileSwitcher />
+          </section>
+
+          <section className="app-section">
+            <h2>Discover Cocktails</h2>
+            <CocktailDiscovery />
+          </section>
+
+          <section className="app-section">
+            <h2>Taste Preferences</h2>
+            <PreferencesEditor />
+          </section>
+
+          <section className="app-section">
+            <h2>Recommended For You</h2>
+            <Recommendations />
+          </section>
+
+          <section className="app-section">
+            <h2>Your Cookbook</h2>
+            <Cookbook />
+          </section>
+
+          <section className="app-section">
+            <WhatCanIMake />
+          </section>
+        </main>
       ) : (
-        <div>
-          <h2>Log In</h2>
-          <LoginForm />
-          <h2>Register</h2>
-          <RegisterForm />
-        </div>
+        <main className="app-main app-auth">
+          <section className="app-section">
+            <h2>Log In</h2>
+            <LoginForm />
+          </section>
+          <section className="app-section">
+            <h2>Register</h2>
+            <RegisterForm />
+          </section>
+        </main>
       )}
     </div>
   )

@@ -95,17 +95,17 @@ export function PreferencesEditor() {
     }
 
     if (!activeProfile) {
-        return <p>Select a profile to set taste preferences.</p>;
+        return <p className="empty-state">Select a profile to set taste preferences.</p>;
     }
 
     return (
         <div>
-            <h2>Taste Preferences for {activeProfile.displayName}</h2>
+            <p>For {activeProfile.displayName}.</p>
             <form onSubmit={handleSave}>
                 <h3>Spirits</h3>
                 {spirits.map(spirit => (
-                    <div key={spirit.id}>
-                        <span>{spirit.name}</span>{' '}
+                    <div key={spirit.id} className="preference-row">
+                        <span className="preference-name">{spirit.name}</span>{' '}
                         <label>
                             <input
                                 type="radio"
@@ -135,8 +135,8 @@ export function PreferencesEditor() {
 
                 <h3>Flavors</h3>
                 {flavorTags.map(flavorTag => (
-                    <div key={flavorTag.id}>
-                        <span>{flavorTag.name}</span>{' '}
+                    <div key={flavorTag.id} className="preference-row">
+                        <span className="preference-name">{flavorTag.name}</span>{' '}
                         <label>
                             <input
                                 type="radio"
@@ -165,26 +165,32 @@ export function PreferencesEditor() {
                 ))}
 
                 <h3>Allergens</h3>
-                <p>
-                    <em>
-                        Matched against ingredient names on a best-effort basis — not a guarantee.
-                        Always double-check ingredients yourself for severe allergies.
-                    </em>
+                <p className="disclaimer">
+                    Matched against ingredient names on a best-effort basis — not a guarantee.
+                    Always double-check ingredients yourself for severe allergies.
                 </p>
-                <ul>
-                    {allergens.map(allergen => (
-                        <li key={allergen}>
-                            {allergen}{' '}
-                            <button type="button" onClick={() => removeAllergen(allergen)}>Remove</button>
-                        </li>
-                    ))}
-                </ul>
-                <input
-                    type="text"
-                    value={allergenInput}
-                    onChange={e => setAllergenInput(e.target.value)}
-                    placeholder="e.g. dairy, tree nuts"
-                />
+                {allergens.length === 0 ? (
+                    <p className="empty-state">No allergens set.</p>
+                ) : (
+                    <ul>
+                        {allergens.map(allergen => (
+                            <li key={allergen}>
+                                {allergen}{' '}
+                                <button type="button" className="button-danger" onClick={() => removeAllergen(allergen)}>Remove</button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                <div>
+                    <label htmlFor="allergen-input">Add an allergen</label>
+                    <input
+                        id="allergen-input"
+                        type="text"
+                        value={allergenInput}
+                        onChange={e => setAllergenInput(e.target.value)}
+                        placeholder="e.g. dairy, tree nuts"
+                    />
+                </div>
                 <button type="button" onClick={addAllergen}>Add Allergen</button>
 
                 <div>

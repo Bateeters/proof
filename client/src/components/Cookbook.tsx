@@ -37,9 +37,9 @@ export function Cookbook() {
 
     return (
         <div>
-            <h2>{activeProfile.displayName}'s Cookbook</h2>
+            <p>{activeProfile.displayName}'s saved recipes.</p>
             {entries.length === 0 ? (
-                <p>Nothing saved yet.</p>
+                <p className="empty-state">Nothing saved yet.</p>
             ) : (
                 <ul>
                     {entries.map(entry => (
@@ -47,7 +47,7 @@ export function Cookbook() {
                             <strong>{entry.cocktailName}</strong> | {entry.cocktailCategory}
                             {entry.notes && <span> — {entry.notes}</span>}
                             {' '}
-                            <button onClick={() => handleRemove(entry.cocktailId)}>Remove</button>
+                            <button className="button-danger" onClick={() => handleRemove(entry.cocktailId)}>Remove</button>
                         </li>
                     ))}
                 </ul>

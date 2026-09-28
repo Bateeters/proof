@@ -40,28 +40,34 @@ export function WhatCanIMake() {
             <h2>What Can I Make?</h2>
             <p>List what you have on hand, then see what you can make (or almost make).</p>
 
-            <ul>
-                {haveIngredients.map(ingredient => (
-                    <li key={ingredient}>
-                        {ingredient}{' '}
-                        <button type="button" onClick={() => removeIngredient(ingredient)}>Remove</button>
-                    </li>
-                ))}
-            </ul>
+            {haveIngredients.length > 0 && (
+                <ul>
+                    {haveIngredients.map(ingredient => (
+                        <li key={ingredient}>
+                            {ingredient}{' '}
+                            <button type="button" className="button-danger" onClick={() => removeIngredient(ingredient)}>Remove</button>
+                        </li>
+                    ))}
+                </ul>
+            )}
 
             <form onSubmit={handleSearch}>
-                <input
-                    type="text"
-                    value={ingredientInput}
-                    onChange={e => setIngredientInput(e.target.value)}
-                    placeholder="e.g. vodka, lime, mint"
-                />
+                <div>
+                    <label htmlFor="have-ingredient-input">Ingredient</label>
+                    <input
+                        id="have-ingredient-input"
+                        type="text"
+                        value={ingredientInput}
+                        onChange={e => setIngredientInput(e.target.value)}
+                        placeholder="e.g. vodka, lime, mint"
+                    />
+                </div>
                 <button type="button" onClick={addIngredient}>Add Ingredient</button>
                 <button type="submit">Find Cocktails</button>
             </form>
 
             {searched && results.length === 0 && (
-                <p>No cocktails match anything in that list.</p>
+                <p className="empty-state">No cocktails match anything in that list.</p>
             )}
 
             {searched && results.length > 0 && (

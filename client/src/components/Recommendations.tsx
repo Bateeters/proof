@@ -35,16 +35,16 @@ export function Recommendations() {
     }
 
     if (!activeProfile) {
-        return <p>Select a profile to see recommendations.</p>;
+        return <p className="empty-state">Select a profile to see recommendations.</p>;
     }
 
     return (
         <div>
-            <h2>Recommended For {activeProfile.displayName}</h2>
+            <p>For {activeProfile.displayName}.</p>
             <button onClick={loadRecommendations}>Refresh Recommendations</button>
 
             {loaded && ranked.length === 0 && (
-                <p>No cocktails to show — every match is excluded by an allergen on this profile.</p>
+                <p className="empty-state">No cocktails to show — every match is excluded by an allergen on this profile.</p>
             )}
 
             {loaded && ranked.length > 0 && (
