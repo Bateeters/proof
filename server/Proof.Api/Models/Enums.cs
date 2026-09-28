@@ -38,3 +38,10 @@ public enum Sentiment
     Positive,
     Negative
 }
+
+public enum SubstitutionReason
+{
+    Taste,
+    Cost,
+    Supply
+}

@@ -139,6 +139,10 @@ The seeded rule table that powers the substitution engine (Phase 8). Curated dat
 
 A single source ingredient can have multiple rows here (different replacement per reason).
 
+**Built 2026-09-28 (Phase 8).** Seeded by `IngredientSubstitutionSeedService` from a small curated rule list (13 rules covering all three `Reason` values with real bartending justification, e.g. Cognac→Brandy for Cost, Orgeat→Amaretto for Supply). Rules reference ingredients by name, looked up case-insensitively — the synced ingredient data has inconsistent casing for the same real ingredient (`"Dark Rum"` and `"Dark rum"` both exist as separate rows from Phase 5's sync), so every case variant found gets its own substitution row rather than the rule silently only firing for one casing. Verified: 13 rules expanded to 25 real rows after case-variant matching.
+
+`POST /api/substitutions/suggest` (`SubstitutionsController`) exposes this via the two-question UX flow already sketched in `API_DESIGN.md` before this was built: ask "Taste, or Availability?", then only if Availability, "Cost or Supply?" — mapped onto the stored `Reason` in the controller, kept as a separate wire vocabulary from the enum so the UI flow isn't coupled to the data model's shape.
+
 ### CookbookEntry
 A saved recipe, private to a Profile. Built 2026-09-28 (Phase 7) — `POST` upserts on `(ProfileId, CocktailId)` (re-saving updates `Notes` rather than duplicating the row or erroring), enforced at the application level the same way every other join table in this project handles uniqueness (check-then-insert), not a DB-level constraint — consistent with the rest of the codebase rather than introducing a new pattern for one table.
 

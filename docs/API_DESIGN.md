@@ -47,19 +47,13 @@ All endpoints except `/auth/*` require `Authorization: Bearer <jwt>`.
 | GET | `/cocktails/{id}` | **Requires auth.** Full recipe detail — `CocktailDetailDto` (summary fields + instructions + full ingredient list with measures). `404` if the id doesn't exist. Ingredients loaded via `.Include()`/`.ThenInclude()` eager loading. |
 | GET | `/cocktails/what-can-i-make?ingredients=vodka,lime,mint` *(planned — Phase 9)* | Local-cache subset-match filter |
 
-## Cookbook *(planned)*
+Cookbook endpoints are documented under **Profiles** above (`/profiles/{id}/cookbook`) since they're profile-scoped like preferences/recommendations — the route shape settled during implementation as `DELETE .../cookbook/{cocktailId}` rather than `{entryId}`, since a frontend "unsave" action only ever knows the cocktail id, not the `CookbookEntry`'s own internal id.
 
-| Method | Route | Notes |
-|---|---|---|
-| GET | `/profiles/{profileId}/cookbook` | List saved recipes |
-| POST | `/profiles/{profileId}/cookbook` | Save a recipe (with optional substitutions) |
-| DELETE | `/profiles/{profileId}/cookbook/{entryId}` | Remove a saved recipe |
-
-## Substitution *(planned)*
+## Substitution
 
 | Method | Route | Body | Notes |
 |---|---|---|---|
-| POST | `/substitutions/suggest` | `{ cocktailId, ingredientId, reason: "Taste"|"Availability", subReason?: "Cost"|"Supply" }` | Returns a suggested replacement ingredient per the two-question flow |
+| POST | `/substitutions/suggest` | `{ cocktailId, ingredientId, reason: "Taste"|"Availability", subReason?: "Cost"|"Supply" }` | **Requires auth.** `400` if `reason`/`subReason` don't form a valid combination. `404` if the ingredient isn't actually part of that cocktail, or if no `IngredientSubstitution` rule exists for the resolved reason. Returns `SubstitutionSuggestionDto` (`{ replacementIngredientId, replacementIngredientName, notes }`). |
 
 ## Admin / sync
 
@@ -71,6 +65,7 @@ All routes below **require the `Admin` role**, not just being logged in (`[Autho
 | POST | `/admin/tag-ingredient-flavors` | Runs `IngredientFlavorTagSyncService`: wholesale-replaces `IngredientFlavorTags` by re-running `IngredientFlavorHeuristic` against every `Ingredient`. Safe to re-run after keyword-list changes — always reflects the current heuristic, never accumulates stale tags. Returns `{ tagsAdded }`. |
 | POST | `/admin/tag-cocktail-flavors` | Runs `CocktailFlavorTagSyncService`: wholesale-replaces `CocktailFlavorTags` using the "half of max" prominence rule over each cocktail's `IngredientFlavorTags` (see `DATA_MODEL.md`). Depends on ingredient-level tagging already being up to date — re-run `tag-ingredient-flavors` first if keyword lists changed. Returns `{ tagsAdded }`. |
 | POST | `/admin/identify-ingredient-spirits` | Runs `IngredientSpiritSyncService`: sets (or clears) `Ingredient.SpiritId` for every ingredient via `IngredientSpiritHeuristic`. Safe to re-run — always reflects the current heuristic. Returns `{ ingredientsMatched }`. |
+| POST | `/admin/seed-ingredient-substitutions` | Runs `IngredientSubstitutionSeedService`: adds any curated substitution rules not already present (per-rule existence check, not a wholesale replace — safe to re-run after adding new curated rules later). Returns `{ rulesAdded }`. |
 
 **Sync/tagging order matters on a fresh database:** `sync-cocktails` first (creates `Ingredient`/`Cocktail` rows), then `tag-ingredient-flavors` and `identify-ingredient-spirits` (either order, both only depend on `Ingredient`), then `tag-cocktail-flavors` last (depends on ingredient-level flavor tags already existing).
 
