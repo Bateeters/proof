@@ -20,6 +20,9 @@ Running session-by-session log. Newest entry on top. Purpose: let any session (e
 - Built `TasteRankingService` (`GET /api/profiles/{id}/recommendations`): hard-excludes cocktails matching a profile's allergens (`AllergenHeuristic`, free-text matched via curated category keywords + direct fallback) — Brian's explicit call that allergens are a safety filter, not a score penalty — then scores survivors on spirit (±2) and flavor (±1) preferences. Verified against real data (Alexander scores exactly -3 for Dislikes-Gin/Avoids-Creamy; "dairy" allergen drops 88/426 cocktails entirely).
 - Fixed enum JSON serialization globally (strings, not raw ints) — caught while testing the preferences endpoint by hand.
 - Working-relationship note: this is the first session under the autonomous-build mode described above — data layer + backend algorithm work went smoothly without hint-scaffolding since it's straightforward extension of already-established patterns; frontend work next.
+- Found and closed one more gap while starting the frontend: no endpoint existed to list all `Spirit`/`FlavorTag` values, only to read what's already set on a profile — added `GET /api/lookup/spirits` and `/flavor-tags` (`LookupController`, shared `LookupItemDto`).
+- Built the Phase 6 frontend: `PreferencesEditor.tsx` (tri-state radio per spirit/flavor tag, free-text allergen list with a visible best-effort-matching disclaimer, wholesale-replace save) and `Recommendations.tsx` (ranked cocktail list with match score, explicit empty-state for "every match excluded by an allergen"). Type-checks clean; not yet visually verified in a browser by a human — Brian should click through it.
+- **Phase 6 complete end to end** (data layer, admin auth, ranking algorithm, frontend) — marked done in `ROADMAP.md`. Moving to Phase 7 (personal cookbook) next in the same session, per Brian's request to complete the full remaining roadmap rather than pausing per phase.
 
 ---
 
