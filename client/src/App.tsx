@@ -3,6 +3,8 @@ import { LoginForm } from './components/LoginForm'
 import { RegisterForm } from './components/RegisterForm'
 import { ProfileSwitcher } from './components/ProfileSwitcher'
 import { CocktailDiscovery } from './components/CocktailDiscovery'
+import { PreferencesEditor } from './components/PreferencesEditor'
+import { Recommendations } from './components/Recommendations'
 import { useAuth } from './context/AuthContext'
 import { useProfiles } from './context/ProfileContext'
 import './App.css'
@@ -21,6 +23,8 @@ function App() {
           <button onClick={logout}>Log Out</button>
           <ProfileSwitcher />
           <CocktailDiscovery />
+          <PreferencesEditor />
+          <Recommendations />
           <AccountsList />
         </div>
       ) : (
