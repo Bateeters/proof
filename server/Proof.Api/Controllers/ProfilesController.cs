@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Proof.Api.Data;
 using Proof.Api.DTOs;
 using Proof.Api.Models;
+using Proof.Api.Services;
 
 namespace Proof.Api.Controllers;
 
@@ -14,10 +15,12 @@ namespace Proof.Api.Controllers;
 public class ProfilesController : ControllerBase
 {
     private readonly ProofDbContext _context;
+    private readonly TasteRankingService _tasteRankingService;
 
-    public ProfilesController(ProofDbContext context)
+    public ProfilesController(ProofDbContext context, TasteRankingService tasteRankingService)
     {
         _context = context;
+        _tasteRankingService = tasteRankingService;
     }
 
     private Guid GetAccountId()
@@ -182,5 +185,18 @@ public class ProfilesController : ControllerBase
 
         await _context.SaveChangesAsync();
         return NoContent();
+    }
+
+    [HttpGet("{id}/recommendations")]
+    public async Task<IActionResult> GetRecommendations(Guid id)
+    {
+        var profile = await GetOwnedProfileAsync(id);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        var ranked = await _tasteRankingService.RankCocktailsForProfileAsync(id);
+        return Ok(ranked);
     }
 }

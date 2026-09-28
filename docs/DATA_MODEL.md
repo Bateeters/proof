@@ -159,6 +159,15 @@ Snapshots any substitutions applied *before* saving, so the cookbook entry refle
 | OriginalIngredientId | FK → Ingredient |
 | SubstitutedIngredientId | FK → Ingredient |
 
+## Taste ranking (`TasteRankingService`, added 2026-09-28)
+
+`GET /api/profiles/{id}/recommendations` scores and sorts every cocktail for a profile. Two-stage design:
+
+1. **Hard safety exclusion, not a score penalty.** Any cocktail containing an ingredient that matches one of the profile's `ProfileAllergen` entries (via `AllergenHeuristic`) is dropped from the results entirely — allergens are a safety concern, not a taste preference, so a bad match should never just rank lower. Brian's call, 2026-09-28: "we don't want people overlooking an included, potentially deadly, ingredient just because they're a few drinks deep already." Verified against real data: setting `"dairy"` as an allergen drops 88 of 426 cocktails, including `Alexander` and `Pink Lady` (both cream/egg-based), entirely from the results rather than just scoring them low.
+2. **Weighted scoring for everything that survives the exclusion.** For each cocktail: every distinct `Spirit` among its ingredients (via `Ingredient.SpiritId`) checked against `ProfileSpiritPreference` (±2), and every `CocktailFlavorTag` checked against `ProfileFlavorPreference` (±1). Spirit preferences outweigh flavor preferences — "likes/dislikes Rum" is a more definitive signal than a flavor nuance like "prefers Citrus." Both weights are plain constants in `TasteRankingService`, easy to retune once real usage exists to judge against. A profile with no preferences set yet gets every cocktail at a neutral `0`, sorted alphabetically as a stable tiebreaker — never an empty or error result. Verified against real data: a profile with "Likes Rum / Dislikes Gin / Prefers Citrus / Avoids Creamy" scores `Alexander` (Gin + Crème de Cacao + Cream) at exactly -3, and rum-and-citrus cocktails at exactly +3.
+
+**Known limitation, documented rather than hidden:** `AllergenHeuristic` matches free-text allergen entries against ingredient names via a small curated category mapping (e.g. `"dairy"` → cream/milk/egg/yogurt keywords, since "dairy" never literally appears in an ingredient name) plus a fallback to direct keyword matching for anything outside that curated list. This is a best-effort match, not a guarantee — an oddly-phrased allergen or an ingredient name that doesn't obviously say what it contains can still be missed. The frontend should carry a visible disclaimer near allergen settings rather than imply a guarantee.
+
 ## Design notes worth remembering
 
 - **Why `Sentiment` enums instead of separate Likes/Dislikes tables**: one table with a sentiment column is less schema duplication and makes "show me everything this profile has an opinion on" a single query. Trade-off: slightly less type-safety than separate tables, acceptable here.

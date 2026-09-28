@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,7 +10,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    // Enums serialize as their name ("Positive"), not the underlying int
+    // (0) — self-documenting JSON instead of a magic number clients would
+    // have to look up in source. Safe to add now: nothing yet consumes an
+    // int-serialized enum body (Season's existing use is query-string only,
+    // which ASP.NET Core binds by name regardless of this setting).
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddDbContext<ProofDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ProofDb")));
 builder.Services.AddCors(options =>
@@ -26,6 +34,7 @@ builder.Services.AddScoped<DataSeedService>();
 builder.Services.AddScoped<IngredientFlavorTagSyncService>();
 builder.Services.AddScoped<CocktailFlavorTagSyncService>();
 builder.Services.AddScoped<IngredientSpiritSyncService>();
+builder.Services.AddScoped<TasteRankingService>();
 builder.Services.AddHttpClient<CocktailDbSyncService>(client =>
 {
     client.BaseAddress = new Uri("https://www.thecocktaildb.com/api/json/v1/1/");
