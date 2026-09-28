@@ -52,9 +52,13 @@ All endpoints except `/auth/*` require `Authorization: Bearer <jwt>`.
 
 ## Admin / sync
 
+All routes below **require the `Admin` role**, not just being logged in (`[Authorize(Roles = "Admin")]`). `Account.IsAdmin` (added 2026-09-28) drives a `"role": "Admin"` claim baked into the JWT at login — see `ARCHITECTURE.md` for how an account becomes an admin and the security reasoning behind it. A logged-in non-admin account gets `403 Forbidden`; no token at all gets `401 Unauthorized`.
+
 | Method | Route | Notes |
 |---|---|---|
-| POST | `/admin/sync-cocktails` | **Requires auth** (any logged-in account — no real admin-role system yet, out of scope for MVP). Runs `CocktailDbSyncService`: walks TheCocktailDB's `search.php?f=<letter>` for a–z, adds any cocktails not already synced (matched by `ExternalId`), dedupes ingredients by name, and assigns seasons via `SeasonHeuristic`. Safe to re-run — already-synced cocktails are skipped. Returns `{ cocktailsAdded }`. |
+| POST | `/admin/sync-cocktails` | Runs `CocktailDbSyncService`: walks TheCocktailDB's `search.php?f=<letter>` for a–z, adds any cocktails not already synced (matched by `ExternalId`), dedupes ingredients by name, and assigns seasons via `SeasonHeuristic`. Safe to re-run — already-synced cocktails are skipped. Returns `{ cocktailsAdded }`. |
+| POST | `/admin/tag-ingredient-flavors` | Runs `IngredientFlavorTagSyncService`: wholesale-replaces `IngredientFlavorTags` by re-running `IngredientFlavorHeuristic` against every `Ingredient`. Safe to re-run after keyword-list changes — always reflects the current heuristic, never accumulates stale tags. Returns `{ tagsAdded }`. |
+| POST | `/admin/tag-cocktail-flavors` | Runs `CocktailFlavorTagSyncService`: wholesale-replaces `CocktailFlavorTags` using the "half of max" prominence rule over each cocktail's `IngredientFlavorTags` (see `DATA_MODEL.md`). Depends on ingredient-level tagging already being up to date — re-run `tag-ingredient-flavors` first if keyword lists changed. Returns `{ tagsAdded }`. |
 
 ## Conventions
 

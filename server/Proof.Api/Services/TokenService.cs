@@ -27,6 +27,14 @@ public class TokenService
             new(JwtRegisteredClaimNames.Email, account.Email),
         };
 
+        // Only added for admins, not as "role": "User" for everyone else — keeps
+        // non-admin tokens minimal and makes an admin token easy to spot if it
+        // ever needs auditing.
+        if (account.IsAdmin)
+        {
+            claims.Add(new Claim("role", "Admin"));
+        }
+
         var expiryMinutes = double.Parse(_configuration["Jwt:ExpiryMinutes"]!);
 
         var token = new JwtSecurityToken(

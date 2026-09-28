@@ -6,7 +6,7 @@ namespace Proof.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Admin")]
 public class AdminController : ControllerBase
 {
     private readonly CocktailDbSyncService _syncService;

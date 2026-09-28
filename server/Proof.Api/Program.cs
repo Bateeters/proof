@@ -45,7 +45,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SigningKey"]!))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SigningKey"]!)),
+            // With MapInboundClaims off (above), ASP.NET Core won't automatically
+            // recognize our short "role" claim as the one [Authorize(Roles = "Admin")]
+            // should check — this says explicitly which claim type that is.
+            RoleClaimType = "role"
         };
     });
 builder.Services.AddAuthorization();

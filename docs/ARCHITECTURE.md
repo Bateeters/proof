@@ -61,6 +61,17 @@ The trade-off: our cache can go stale if TheCocktailDB's data changes upstream. 
 3. Client stores the JWT **in memory** (React context/state), not `localStorage`. This is deliberate: `localStorage` is readable by any JS on the page, so a successful XSS attack anywhere in the app (or a compromised dependency) can steal every logged-in user's token. In-memory means a page refresh logs you out — that's an accepted trade-off for MVP. A production-grade fix (httpOnly refresh cookie + short-lived access token) is a documented stretch goal, not required for the portfolio version.
 4. Each API request sends `Authorization: Bearer <token>`; middleware validates it and attaches the identity to the request.
 
+## Admin authorization
+
+Added 2026-09-28, when `AdminController`'s three data-sync endpoints (`sync-cocktails`, `tag-ingredient-flavors`, `tag-cocktail-flavors`) moved from "any logged-in account" to a real `Admin`-only gate — those endpoints can wipe and rebuild core tables, which is fine for a solo-dev MVP but not once this is treated as a product other people's accounts exist on.
+
+- `Account.IsAdmin` (a plain `bool`, defaults `false`) is the source of truth. No roles table — one admin/non-admin distinction doesn't justify one.
+- `TokenService` adds a `"role": "Admin"` claim to the JWT **only** when `IsAdmin` is true (not `"role": "User"` for everyone else — keeps ordinary tokens minimal).
+- `Program.cs`'s JWT setup sets `RoleClaimType = "role"` explicitly. This is required because `MapInboundClaims = false` (set for the `"sub"` claim, see below) also disables ASP.NET Core's automatic short-name-to-long-URI mapping for `"role"` — without this line, `[Authorize(Roles = "Admin")]` would silently never match.
+- `AdminController` uses `[Authorize(Roles = "Admin")]`, not plain `[Authorize]`. Verified: admin token → `200`, logged-in non-admin token → `403`, no token → `401`.
+- **Becoming an admin is deliberately not self-service and not seeded in code.** There's no endpoint, no `DataSeedService` entry, no hardcoded admin account anywhere in source. A hardcoded default-admin-with-known-password is itself a common real-world vulnerability (an OWASP-flagged pattern), so the first admin account is granted by a one-off direct database update instead (`UPDATE "Accounts" SET "IsAdmin" = true WHERE "Email" = '...'`). This is a standard, appropriately-scoped bootstrap approach for a project this size — a proper admin-invite flow would be over-engineering right now.
+- **Known trade-off:** the role claim is baked into the JWT at login time. If an account's `IsAdmin` is later revoked, any already-issued token keeps working as an admin token until it naturally expires. Bounded by `Jwt:ExpiryMinutes` (currently 60), so the exposure window is small — but worth knowing if `IsAdmin` is ever flipped off for an account that's actively logged in.
+
 ## Accounts vs. Profiles
 
 This distinction matters and is easy to conflate:
@@ -76,7 +87,7 @@ Established in Phase 1 (`AccountsController`): every endpoint returns a **DTO** 
 
 ## Reference-data seeding
 
-`Spirit` and `FlavorTag` (Phase 6) are curated lookup lists, not user- or sync-generated data. Rather than EF Core's migration-embedded `HasData()` (which requires deterministic ids baked into the migration itself and hasn't been needed anywhere else in this project), seeding happens in `DataSeedService`, run once at app startup in `Program.cs` via a manually-created DI scope (`app.Services.CreateScope()` — startup code runs before any HTTP request exists to hang a scoped `DbContext` off of, so one has to be created by hand). Each seed method checks `AnyAsync()` before inserting, so re-running (e.g. every local `dotnet run`) is a no-op once the data exists — verified by restarting the server and confirming row counts didn't change.
+`Spirit` and `FlavorTag` (Phase 6) are curated lookup lists, not user- or sync-generated data. Rather than EF Core's migration-embedded `HasData()` (which requires deterministic ids baked into the migration itself and hasn't been needed anywhere else in this project), seeding happens in `DataSeedService`, run once at app startup in `Program.cs` via a manually-created DI scope (`app.Services.CreateScope()` — startup code runs before any HTTP request exists to hang a scoped `DbContext` off of, so one has to be created by hand). Each seed method checks which names already exist (one query) and only adds the missing ones — not a whole-table `AnyAsync()` skip, which would silently stop new seed values (like `"Spiced"`, added later) from ever being inserted once the table already had older rows in it. Re-running (e.g. every local `dotnet run`) is a no-op once the data exists — verified by restarting the server and confirming row counts didn't change.
 
 ## Where things live
 

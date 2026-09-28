@@ -4,6 +4,19 @@ Running session-by-session log. Newest entry on top. Purpose: let any session (e
 
 ---
 
+## 2026-09-28 — Phase 6, part 2 finished + admin authorization
+
+**Working-relationship change:** Brian is time-crunched and asked me to switch from hints-first pairing to building directly as senior dev/architect for the remainder of the project — explicitly not a rejection of the prior mentoring style, just a pace change under time pressure (see mentoring-style memory). Documentation rigor and security/correctness review stay the same or increase; I'm no longer scaffolding-and-waiting on data-layer/service work.
+
+**Did:**
+- Finished `CocktailFlavorTagSyncService.TagAllCocktailsAsync()` (previously a TODO skeleton) — loads `Cocktails`/`CocktailIngredients`/`IngredientFlavorTags` once, wholesale-replaces `CocktailFlavorTags`, and applies the "half of max" prominence rule designed with Brian in the prior session (count distinct ingredients per flavor tag per cocktail, keep any tag whose count is at least half of that cocktail's highest count, `count * 2 >= max` to dodge integer-division rounding). Verified against real data: Margarita → Sour+Citrus, Ace → Creamy only, A1 → all four tags kept (no dominant tag) — exactly the outcomes reasoned through by hand two sessions ago. 407 of 426 cocktails end up with at least one flavor tag; 1156 `CocktailFlavorTag` rows total.
+- **Real security gap found and fixed:** `AdminController`'s three sync endpoints (`sync-cocktails`, `tag-ingredient-flavors`, `tag-cocktail-flavors`) required only `[Authorize]` — any registered account, not actually an admin, could wipe and rebuild core tables. Added `Account.IsAdmin`, a `"role": "Admin"` JWT claim issued only for admin accounts, explicit `RoleClaimType = "role"` in the JWT bearer config (needed because `MapInboundClaims = false` also disables the framework's automatic role-claim recognition), and switched `AdminController` to `[Authorize(Roles = "Admin")]`. Deliberately no seeded/hardcoded default admin account in source — that's its own vulnerability pattern — first admin is granted via a one-off direct database update instead. Verified all three cases: admin token → `200`, logged-in non-admin → `403`, no token → `401`. Full reasoning (including the known trade-off that a revoked admin's existing token stays valid until it expires, bounded by the 60-minute JWT expiry) documented in `ARCHITECTURE.md`.
+- Fixed a stale doc: `ARCHITECTURE.md`'s reference-data seeding section still described the old whole-table `AnyAsync()` check, not the per-item check it was actually changed to a few sessions ago.
+
+**Next:** design and build the taste-based ranking algorithm itself (the Phase 6 centerpiece) — now unblocked since both ingredient- and cocktail-level flavor data exist and are verified — then the frontend for setting preferences and viewing ranked results.
+
+---
+
 ## 2026-08-09 to 2026-08-22 — Phase 6, part 1: taste preferences data + CRUD
 
 Session resumed after a ~2 week gap (Brian stepped away, came back not remembering recent details) — confirmed `git status` clean and all prior work committed, walked through `PROGRESS.md`/`ROADMAP.md` to re-orient instead of re-deriving from conversation history. Worth noting for future sessions: this worked well as a pattern and is exactly what these docs are for.
