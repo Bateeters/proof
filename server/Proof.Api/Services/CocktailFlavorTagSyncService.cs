@@ -15,32 +15,91 @@ public class CocktailFlavorTagSyncService
 
     public async Task<int> TagAllCocktailsAsync()
     {
-        // TODO:
-        // 1. Load everything you'll need into memory up front, so the per-cocktail
-        //    work below doesn't have to hit the database again and again:
-        //    - Every Cocktail (or just their Ids).
-        //    - Every CocktailIngredient (tells you which Ingredients belong to which Cocktail).
-        //    - Every IngredientFlavorTag (tells you which FlavorTags belong to which Ingredient).
-        //
-        // 2. Same as the ingredient sync: wipe any CocktailFlavorTags left over from a
-        //    previous run before rebuilding (we already solved this pattern once).
-        //
-        // 3. For each cocktail:
-        //    a. Find which Ingredients belong to it (from the CocktailIngredients you loaded).
-        //    b. For those ingredients, find every FlavorTag they carry (from the
-        //       IngredientFlavorTags you loaded).
-        //    c. Group by FlavorTagId, and for each group, count how many *distinct*
-        //       ingredients contributed it — this is the number from the Ace/Margarita/A1
-        //       examples (e.g. Creamy came from 3 different ingredients in Ace).
-        //    d. Find the highest count among those groups for this cocktail (the "max").
-        //    e. Keep any FlavorTagId whose count is at least half of the max. Careful with
-        //       integer math here — "count >= max / 2" using plain integer division can
-        //       round in a way you don't want. Think about how to compare the two without
-        //       dividing at all.
-        //    f. Add a CocktailFlavorTag row for each FlavorTagId that qualifies.
-        //
-        // 4. Save, and return a count of how many rows got added.
+        var cocktailIds = await _context.Cocktails
+            .Select(c => c.Id)
+            .ToListAsync();
 
-        throw new NotImplementedException();
+        var cocktailIngredients = await _context.CocktailIngredients
+            .Select(ci => new { ci.CocktailId, ci.IngredientId })
+            .ToListAsync();
+
+        var ingredientFlavorTags = await _context.IngredientFlavorTags
+            .Select(ift => new { ift.IngredientId, ift.FlavorTagId })
+            .ToListAsync();
+
+        var existingCocktailTags = await _context.CocktailFlavorTags.ToListAsync();
+        _context.CocktailFlavorTags.RemoveRange(existingCocktailTags);
+
+        var ingredientIdsByCocktail = cocktailIngredients
+            .GroupBy(ci => ci.CocktailId)
+            .ToDictionary(g => g.Key, g => g.Select(ci => ci.IngredientId).ToList());
+
+        var flavorTagIdsByIngredient = ingredientFlavorTags
+            .GroupBy(ift => ift.IngredientId)
+            .ToDictionary(g => g.Key, g => g.Select(ift => ift.FlavorTagId).ToList());
+
+        var cocktailFlavorTagsAdded = 0;
+
+        foreach (var cocktailId in cocktailIds)
+        {
+            if (!ingredientIdsByCocktail.TryGetValue(cocktailId, out var ingredientIds))
+            {
+                continue;
+            }
+
+            // Every (Ingredient, FlavorTag) pair contributed by this cocktail's
+            // ingredients. Kept as pairs (not just a flat list of tag ids) so the
+            // grouping below can count *distinct ingredients* per tag rather than
+            // raw occurrences.
+            var pairs = new List<(Guid IngredientId, Guid FlavorTagId)>();
+            foreach (var ingredientId in ingredientIds)
+            {
+                if (flavorTagIdsByIngredient.TryGetValue(ingredientId, out var tagIds))
+                {
+                    foreach (var tagId in tagIds)
+                    {
+                        pairs.Add((ingredientId, tagId));
+                    }
+                }
+            }
+
+            if (pairs.Count == 0)
+            {
+                // No ingredient in this cocktail has any flavor data at all —
+                // nothing to compute a profile from, so it stays untagged.
+                continue;
+            }
+
+            var ingredientCountByTag = pairs
+                .GroupBy(p => p.FlavorTagId)
+                .Select(g => new
+                {
+                    FlavorTagId = g.Key,
+                    IngredientCount = g.Select(p => p.IngredientId).Distinct().Count()
+                })
+                .ToList();
+
+            var maxIngredientCount = ingredientCountByTag.Max(t => t.IngredientCount);
+
+            // "At least half of the max" — e.g. IngredientCount * 2 >= maxIngredientCount
+            // avoids integer-division rounding. A tag tied for the max (or close to it)
+            // is prominent; one backed by a single minor ingredient next to a dominant
+            // tag gets dropped.
+            foreach (var tag in ingredientCountByTag)
+            {
+                if (tag.IngredientCount * 2 >= maxIngredientCount)
+                {
+                    _context.CocktailFlavorTags.Add(new CocktailFlavorTag
+                    {
+                        CocktailId = cocktailId,
+                        FlavorTagId = tag.FlavorTagId
+                    });
+                    cocktailFlavorTagsAdded++;
+                }
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return cocktailFlavorTagsAdded;
     }
 }
