@@ -19,6 +19,13 @@ All endpoints except `/auth/*` require `Authorization: Bearer <jwt>`.
 | POST | `/auth/register` | `{ email, password }` | Hashes password (BCrypt), creates Account, returns `AuthResponseDto` (`{ token, account }`) — auto-login on register |
 | POST | `/auth/login` | `{ email, password }` | Verifies password, returns `AuthResponseDto` (`{ token, account }`). Nonexistent email and wrong password both return an identical `401` — no distinguishing info, to avoid account enumeration |
 
+## Lookup (reference data)
+
+| Method | Route | Notes |
+|---|---|---|
+| GET | `/lookup/spirits` | **Requires auth** (not admin-only — any signed-in user needs this to render preference-selection UI). Every `Spirit`, `LookupItemDto[]` (`{ id, name }`), alphabetical. |
+| GET | `/lookup/flavor-tags` | Same shape, every `FlavorTag`. |
+
 ## Profiles
 
 | Method | Route | Body | Notes |
