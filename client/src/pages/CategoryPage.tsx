@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { CocktailCard } from "../components/CocktailCard";
 import type { CocktailSummary } from "../types/Cocktail";
@@ -25,15 +25,20 @@ export function CategoryPage() {
 
     return (
         <div>
-            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-                <h1 className="text-3xl">{categoryName}</h1>
-                <input
-                    className="field-input w-64"
-                    type="text"
-                    placeholder={`Search ${categoryName}...`}
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                />
+            <div className="mb-6">
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                    <h1 className="text-3xl">{categoryName}</h1>
+                    <Link to="/cookbook" className="btn-primary">Your Cookbook</Link>
+                </div>
+                <div className="flex justify-end">
+                    <input
+                        className="field-input w-64"
+                        type="text"
+                        placeholder={`Search ${categoryName}...`}
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                    />
+                </div>
             </div>
 
             {cocktails.length === 0 ? (
