@@ -73,7 +73,6 @@ export function Sidebar() {
                         <p className="pl-3 mb-2 text-xs uppercase tracking-[0.15em] text-ink-600/70">You</p>
                         <nav className="flex flex-col gap-1">
                             <NavLink to="/recommendations" className={navLinkClass}>Recommended For You</NavLink>
-                            <NavLink to="/cookbook" className={navLinkClass}>Your Cookbook</NavLink>
                             <NavLink to="/what-can-i-make" className={navLinkClass}>What Can I Make?</NavLink>
                             <NavLink to="/preferences" className={navLinkClass}>Taste Preferences</NavLink>
                         </nav>
