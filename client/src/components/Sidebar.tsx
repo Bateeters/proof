@@ -33,7 +33,7 @@ export function Sidebar() {
         // moves, only its interior does.
         <aside
             className="sticky top-0 h-svh w-64 shrink-0 flex flex-col
-                bg-white/60 backdrop-blur-lg border-r border-gold-600/60
+                bg-white/60 backdrop-blur-lg border-r-2 border-gold-600
                 shadow-[8px_0_30px_-4px_rgba(0,0,0,0.15)]"
         >
             <div className="shrink-0 pl-4 pr-4 pt-6 pb-4">
