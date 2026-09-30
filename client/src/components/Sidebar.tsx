@@ -37,7 +37,7 @@ export function Sidebar() {
                 shadow-[8px_0_30px_-4px_rgba(0,0,0,0.15)]"
         >
             <div className="shrink-0 pl-4 pr-4 pt-6 pb-4">
-                <span className="font-display text-2xl text-gold-600 tracking-wide">Proof</span>
+                <span className="font-display text-4xl text-gold-600 tracking-wide">Proof</span>
             </div>
 
             {/* direction:rtl moves the scrollbar to the left edge instead of

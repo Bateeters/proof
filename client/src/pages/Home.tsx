@@ -60,7 +60,7 @@ export function Home() {
                     <input
                         className="field-input w-full max-w-sm"
                         type="text"
-                        placeholder="Search cocktails..."
+                        placeholder="Search drinks..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
