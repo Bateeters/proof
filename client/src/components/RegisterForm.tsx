@@ -4,11 +4,17 @@ import { useAuth } from "../context/AuthContext";
 export function RegisterForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const { register } = useAuth();
 
     async function handleSubmit(e: SubmitEvent) {
         e.preventDefault();
-        await register(email, password)
+        setError('');
+        try {
+            await register(email, password);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Something went wrong.');
+        }
     }
 
     return (
@@ -33,6 +39,7 @@ export function RegisterForm() {
                     onChange={e => setPassword(e.target.value)}
                 />
             </div>
+            {error && <p className="text-sm text-red-600">{error}</p>}
             <button type="submit" className="btn-secondary">Register</button>
         </form>
     )

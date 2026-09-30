@@ -22,6 +22,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({ email, password }),
         })
 
+        // Login returns a bare 401 (no body) on bad credentials -- parsing
+        // JSON from an empty response throws, so this has to be checked
+        // before reading the body, not after.
+        if (!response.ok) {
+            throw new Error('Invalid email or password.');
+        }
+
         const data = await response.json();
 
         setAccount(data.account);
@@ -34,6 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
         })
+
+        if (!response.ok) {
+            throw new Error('Could not register with that email and password.');
+        }
 
         const data = await response.json();
 

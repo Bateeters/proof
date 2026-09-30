@@ -4,11 +4,17 @@ import { useAuth } from "../context/AuthContext";
 export function LoginForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const { login } = useAuth();
 
     async function handleSubmit(e: SubmitEvent) {
         e.preventDefault();
-        await login(email, password)
+        setError('');
+        try {
+            await login(email, password);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Something went wrong.');
+        }
     }
 
     return (
@@ -33,6 +39,7 @@ export function LoginForm() {
                     onChange={e => setPassword(e.target.value)}
                 />
             </div>
+            {error && <p className="text-sm text-red-600">{error}</p>}
             <button type="submit" className="btn-primary">Log In</button>
         </form>
     )
