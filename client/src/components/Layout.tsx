@@ -13,7 +13,7 @@ export function Layout() {
             <Sidebar />
 
             <div className="flex-1 min-w-0">
-                <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gold-600/30 bg-gold-600/90 backdrop-blur px-8 py-4 sticky top-0 z-10">
+                <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gold-600/30 bg-gold-600 px-8 py-4 sticky top-0 z-10">
                     {/* RequireProfile guarantees activeProfile is set for every
                         route this header renders on, so this is safe */}
                     <button
