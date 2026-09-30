@@ -24,7 +24,12 @@ export function CategoryRail<T extends CocktailSummary>({ title, seeAllTo, cockt
                     </Link>
                 )}
             </div>
-            <div className="flex gap-4 overflow-x-auto rail-scroll pb-3 -mx-1 px-1">
+            {/* overflow-x-auto forces overflow-y to clip too (CSS doesn't
+                allow one axis scrollable and the other fully open) -- pt-3
+                paired with -mt-3 keeps the rail's visual position under the
+                heading unchanged while giving hovered cards' shadow/lift
+                room to render before hitting that clipped edge. */}
+            <div className="flex gap-4 overflow-x-auto rail-scroll pt-3 -mt-3 pb-4 -mx-1 px-1">
                 {cocktails.map(cocktail => (
                     <div key={cocktail.id} className="w-56 shrink-0">
                         <CocktailCard
