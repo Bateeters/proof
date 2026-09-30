@@ -12,26 +12,28 @@ export function RegisterForm() {
     }
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-                <label htmlFor="register-email">Email</label>
+                <label className="field-label" htmlFor="register-email">Email</label>
                 <input
                     id="register-email"
+                    className="field-input"
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                 />
             </div>
             <div>
-                <label htmlFor="register-password">Password</label>
+                <label className="field-label" htmlFor="register-password">Password</label>
                 <input
                     id="register-password"
+                    className="field-input"
                     type="password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                 />
             </div>
-            <button type="submit">Register</button>
+            <button type="submit" className="btn-secondary">Register</button>
         </form>
     )
 }

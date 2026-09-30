@@ -12,6 +12,8 @@ type Props = {
 // only drill into Cost-vs-Supply if Availability was picked.
 type Step = 'closed' | 'reason' | 'subReason' | 'result';
 
+const miniBtn = "text-xs rounded-full border border-marble-300 px-2.5 py-1 text-ink-700 hover:border-gold-400 hover:text-gold-600 transition-colors";
+
 export function SubstitutionSuggester({ cocktailId, ingredientId, ingredientName }: Props) {
     const { token } = useAuth();
     const [step, setStep] = useState<Step>('closed');
@@ -45,39 +47,37 @@ export function SubstitutionSuggester({ cocktailId, ingredientId, ingredientName
     }
 
     if (step === 'closed') {
-        return <button onClick={() => setStep('reason')}>Suggest Substitute</button>;
+        return <button className={miniBtn} onClick={() => setStep('reason')}>Suggest Substitute</button>;
     }
 
     if (step === 'reason') {
         return (
-            <span>
-                {' '}Why swap it?{' '}
-                <button onClick={() => fetchSuggestion('Taste')}>Taste</button>{' '}
-                <button onClick={() => setStep('subReason')}>Availability</button>{' '}
-                <button onClick={reset}>Cancel</button>
+            <span className="inline-flex items-center gap-2 text-xs text-ink-600">
+                Why swap it?
+                <button className={miniBtn} onClick={() => fetchSuggestion('Taste')}>Taste</button>
+                <button className={miniBtn} onClick={() => setStep('subReason')}>Availability</button>
+                <button className="text-xs text-ink-500 underline" onClick={reset}>Cancel</button>
             </span>
         );
     }
 
     if (step === 'subReason') {
         return (
-            <span>
-                {' '}Cost, or hard to find (Supply)?{' '}
-                <button onClick={() => fetchSuggestion('Availability', 'Cost')}>Cost</button>{' '}
-                <button onClick={() => fetchSuggestion('Availability', 'Supply')}>Supply</button>{' '}
-                <button onClick={reset}>Cancel</button>
+            <span className="inline-flex items-center gap-2 text-xs text-ink-600">
+                Cost, or hard to find?
+                <button className={miniBtn} onClick={() => fetchSuggestion('Availability', 'Cost')}>Cost</button>
+                <button className={miniBtn} onClick={() => fetchSuggestion('Availability', 'Supply')}>Supply</button>
+                <button className="text-xs text-ink-500 underline" onClick={reset}>Cancel</button>
             </span>
         );
     }
 
     return (
-        <span>
-            {' '}
+        <span className="inline-flex items-center gap-2 text-xs">
             {suggestion
-                ? <>Try <strong>{suggestion.replacementIngredientName}</strong> instead — {suggestion.notes}</>
-                : notFound && <>No known substitution for {ingredientName} for that reason.</>}
-            {' '}
-            <button onClick={reset}>Close</button>
+                ? <span className="text-ink-700">Try <strong className="text-gold-600">{suggestion.replacementIngredientName}</strong> — {suggestion.notes}</span>
+                : notFound && <span className="text-ink-600">No known substitution for {ingredientName} for that reason.</span>}
+            <button className="text-ink-500 underline" onClick={reset}>Close</button>
         </span>
     );
 }

@@ -16,3 +16,8 @@ export type CocktailIngredient = {
     ingredientName: string;
     measure: string | null;
 }
+
+export type CategoryPreview = {
+    category: string;
+    cocktails: CocktailSummary[];
+}

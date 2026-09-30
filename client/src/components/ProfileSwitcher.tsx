@@ -4,42 +4,54 @@ import { useProfiles } from "../context/ProfileContext";
 export function ProfileSwitcher() {
     const { profiles, activeProfile, setActiveProfile, createProfile } = useProfiles();
     const [displayName, setDisplayName] = useState('');
+    const [adding, setAdding] = useState(false);
 
     async function handleSubmit(e: SubmitEvent) {
         e.preventDefault();
-        await createProfile(displayName)
+        await createProfile(displayName);
+        setDisplayName('');
+        setAdding(false);
     }
 
     return (
-        <div>
-            {profiles.length === 0 ? (
-                <p className="empty-state">No profiles yet — create one below.</p>
-            ) : (
-                <ul id="profile-list">
-                    {profiles.map((profile) => (
-                        <li
-                            key={profile.id}
-                            onClick={() => setActiveProfile(profile)}
-                            className={activeProfile?.id == profile.id ?
-                                "active-profile" : "inactive-profile"}
-                        >
-                            {profile.displayName}
-                        </li>
-                    ))}
-                </ul>
+        <div className="flex items-center gap-2 flex-wrap">
+            {profiles.length === 0 && !adding && (
+                <span className="text-sm text-ink-600">No profiles yet.</span>
             )}
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="new-profile-name">New profile name</label>
+
+            {profiles.map((profile) => (
+                <button
+                    key={profile.id}
+                    onClick={() => setActiveProfile(profile)}
+                    className={`rounded-full px-4 py-1.5 text-sm transition-colors ${activeProfile?.id === profile.id
+                        ? "bg-ink-900 text-marble-50"
+                        : "bg-white border border-marble-300 text-ink-700 hover:border-gold-400"
+                        }`}
+                >
+                    {profile.displayName}
+                </button>
+            ))}
+
+            {adding ? (
+                <form onSubmit={handleSubmit} className="flex items-center gap-2">
                     <input
-                        id="new-profile-name"
-                        type="text"
+                        autoFocus
+                        className="field-input py-1.5 text-sm w-40"
+                        placeholder="Profile name"
                         value={displayName}
                         onChange={e => setDisplayName(e.target.value)}
                     />
-                </div>
-                <button type="submit">Create Profile</button>
-            </form>
+                    <button type="submit" className="btn-secondary py-1.5">Add</button>
+                    <button type="button" className="text-sm text-ink-600" onClick={() => setAdding(false)}>Cancel</button>
+                </form>
+            ) : (
+                <button
+                    onClick={() => setAdding(true)}
+                    className="rounded-full px-4 py-1.5 text-sm border border-dashed border-marble-300 text-ink-600 hover:border-gold-400 hover:text-gold-600"
+                >
+                    + New Profile
+                </button>
+            )}
         </div>
     )
 }

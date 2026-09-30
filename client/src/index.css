@@ -1,146 +1,74 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --surface: #faf9fb;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --accent-text: #fff;
-  --danger: #c4283d;
-  --danger-bg: rgba(196, 40, 61, 0.08);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import "tailwindcss";
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+@theme {
+  --color-marble-50: #fdfcfa;
+  --color-marble-100: #f8f5ee;
+  --color-marble-200: #efe9db;
+  --color-marble-300: #ddd2b8;
 
-  font: 16px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  --color-gold-300: #e7cd80;
+  --color-gold-400: #cca43a;
+  --color-gold-500: #b3872a;
+  --color-gold-600: #8f6a1f;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --surface: #1c1d24;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --accent-text: #16171d;
-    --danger: #f26b7d;
-    --danger-bg: rgba(242, 107, 125, 0.12);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-}
+  --color-ink-600: #5c5248;
+  --color-ink-700: #3c342c;
+  --color-ink-800: #26201b;
+  --color-ink-900: #16120f;
 
-*, *::before, *::after {
-  box-sizing: border-box;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
 }
 
 body {
-  margin: 0;
+  @apply bg-marble-50 text-ink-700 font-sans antialiased;
 }
 
-#root {
-  min-height: 100svh;
+h1, h2, h3, h4 {
+  @apply font-display text-ink-900 font-semibold;
 }
 
-h1, h2, h3 {
-  font-family: var(--heading);
-  font-weight: 600;
-  color: var(--text-h);
-  margin: 0 0 8px;
+::selection {
+  @apply bg-gold-300/40;
 }
 
-h1 {
-  font-size: 28px;
-  letter-spacing: -0.4px;
-  margin: 0;
+/* Shared form/button primitives -- reused across every form in the app so
+   the visual language stays consistent without retyping long utility
+   strings in each component. */
+
+.field-label {
+  @apply block text-xs font-medium tracking-wide uppercase text-ink-600 mb-1;
 }
 
-h2 {
-  font-size: 20px;
-  letter-spacing: -0.2px;
+.field-input {
+  @apply w-full rounded-md border border-marble-300 bg-white px-3 py-2 text-ink-800
+    focus:outline-none focus:ring-2 focus:ring-gold-400/50 focus:border-gold-400;
 }
 
-h3 {
-  font-size: 17px;
+.btn-primary, .btn-secondary, .btn-danger {
+  @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium
+    transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
-p {
-  margin: 0 0 8px;
+.btn-primary {
+  @apply bg-ink-900 text-marble-50 hover:bg-gold-600;
 }
 
-a {
-  color: var(--accent);
+.btn-secondary {
+  @apply bg-transparent border border-marble-300 text-ink-700 hover:border-gold-400;
 }
 
-code {
-  font-family: var(--mono);
-  font-size: 14px;
-  border-radius: 4px;
-  padding: 2px 6px;
-  background: var(--code-bg);
-  color: var(--text-h);
+.btn-danger {
+  @apply bg-transparent border border-red-300 text-red-700 hover:bg-red-50;
 }
 
-input, select, textarea, button {
-  font: inherit;
-  color: inherit;
+/* Thin gold-tinted scrollbar for horizontal rails */
+.rail-scroll::-webkit-scrollbar {
+  height: 6px;
 }
-
-input, select, textarea {
-  padding: 7px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text-h);
+.rail-scroll::-webkit-scrollbar-thumb {
+  @apply bg-gold-300/60 rounded-full;
 }
-
-input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-button {
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  background: var(--accent);
-  color: var(--accent-text);
-  cursor: pointer;
-  font-weight: 500;
-  transition: opacity 0.15s, box-shadow 0.15s;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.rail-scroll::-webkit-scrollbar-track {
+  @apply bg-transparent;
 }
