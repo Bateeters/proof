@@ -93,6 +93,39 @@ public class CocktailsController : ControllerBase
         return Ok(cocktailDetailDto);
     }
 
+    [HttpGet("browse")]
+    public async Task<IActionResult> Browse([FromQuery] int perCategory = 4)
+    {
+        var categories = await _context.Cocktails
+            .Select(c => c.Category)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync();
+
+        var previews = new List<CategoryPreviewDto>();
+
+        foreach (var category in categories)
+        {
+            var cocktails = await _context.Cocktails
+                .Where(c => c.Category == category)
+                .OrderBy(c => c.Name)
+                .Take(perCategory)
+                .Select(c => new CocktailSummaryDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Category = c.Category,
+                    Glass = c.Glass,
+                    ImageUrl = c.ImageUrl
+                })
+                .ToListAsync();
+
+            previews.Add(new CategoryPreviewDto { Category = category, Cocktails = cocktails });
+        }
+
+        return Ok(previews);
+    }
+
     [HttpGet("what-can-i-make")]
     public async Task<IActionResult> WhatCanIMake([FromQuery] string? ingredients)
     {
