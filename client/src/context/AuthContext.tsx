@@ -1,9 +1,10 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Account } from "../types/Account";
 
 type AuthContextValue = {
     token: string | null;
     account: Account | null;
+    isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, password: string) => Promise<void>;
     logout: () => void
@@ -14,10 +15,32 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [token, setToken] = useState<string | null>(null);
     const [account, setAccount] = useState<Account | null>(null);
+    // Starts true: on first load, we don't yet know whether a valid
+    // refresh-token cookie exists. ProtectedRoute/AuthPage wait for this
+    // before deciding to show the login screen, so a page refresh doesn't
+    // flash the login form before the silent-refresh check below finishes.
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include',
+        })
+            .then(async response => {
+                if (!response.ok) {
+                    return;
+                }
+                const data = await response.json();
+                setAccount(data.account);
+                setToken(data.token);
+            })
+            .finally(() => setIsLoading(false));
+    }, []);
 
     async function login(email: string, password: string) {
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
         })
@@ -38,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function register(email: string, password: string) {
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
         })
@@ -53,11 +77,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     function logout() {
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/logout`, {
+            method: 'POST',
+            credentials: 'include',
+        });
         setToken(null);
         setAccount(null);
     }
 
-    const value: AuthContextValue = { token, account, login, register, logout };
+    const value: AuthContextValue = { token, account, isLoading, login, register, logout };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

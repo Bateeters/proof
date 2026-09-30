@@ -4,7 +4,15 @@ import { LoginForm } from "../components/LoginForm";
 import { RegisterForm } from "../components/RegisterForm";
 
 export function AuthPage() {
-    const { token } = useAuth();
+    const { token, isLoading } = useAuth();
+
+    if (isLoading) {
+        return (
+            <div className="min-h-svh flex items-center justify-center text-ink-600">
+                Loading...
+            </div>
+        );
+    }
 
     if (token) {
         return <Navigate to="/" replace />;

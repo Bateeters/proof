@@ -24,9 +24,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient", policy =>
     {
+        // AllowCredentials is required for the browser to send/receive the
+        // httpOnly refresh-token cookie across the 5173/5168 port split —
+        // only works paired with an explicit origin (WithOrigins), never
+        // with a wildcard, which is why this couldn't just be AllowAnyOrigin.
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 builder.Services.AddScoped<TokenService>();

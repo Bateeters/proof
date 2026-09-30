@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Proof.Api.Models;
@@ -15,7 +16,7 @@ public class TokenService
         _configuration = configuration;
     }
 
-    public string GenerateToken(Account account)
+    public string GenerateAccessToken(Account account)
     {
         var signingKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_configuration["Jwt:SigningKey"]!));
@@ -35,7 +36,7 @@ public class TokenService
             claims.Add(new Claim("role", "Admin"));
         }
 
-        var expiryMinutes = double.Parse(_configuration["Jwt:ExpiryMinutes"]!);
+        var expiryMinutes = double.Parse(_configuration["Jwt:AccessTokenExpiryMinutes"]!);
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
@@ -45,5 +46,26 @@ public class TokenService
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    // Deliberately NOT a JWT — a refresh token doesn't need to carry claims,
+    // it just needs to be an unguessable value the server can look up and
+    // validate against the RefreshTokens table (letting it be revoked, which
+    // a self-contained JWT couldn't be without a separate blocklist anyway).
+    public string GenerateRefreshTokenValue()
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+    }
+
+    public double RefreshTokenExpiryDays => double.Parse(_configuration["Jwt:RefreshTokenExpiryDays"]!);
+
+    // Only the hash is ever stored (see RefreshToken.TokenHash) -- SHA-256 is
+    // appropriate here (unlike BCrypt for passwords) because the raw value
+    // is already a long, high-entropy random string, not something a
+    // brute-force/dictionary attack could feasibly guess.
+    public static string HashRefreshToken(string rawToken)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+        return Convert.ToHexString(bytes);
     }
 }

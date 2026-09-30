@@ -6,6 +6,7 @@ namespace Proof.Api.Data;
 public class ProofDbContext : DbContext
 {
     public DbSet<Account> Accounts { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Profile> Profiles { get; set; }
     public DbSet<Cocktail> Cocktails { get; set; }
     public DbSet<Ingredient> Ingredients { get; set; }
