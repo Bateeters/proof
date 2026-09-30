@@ -23,16 +23,17 @@
 body {
   @apply text-ink-700 font-sans antialiased;
   background-color: var(--color-marble-50);
-  /* Layered soft blotches (marble's cloudy variation) + two crossing sets
-     of thin repeating diagonal lines (veining) at low opacity, all in
-     white/off-white/gray so it reads as stone texture, not a pattern. */
+  /* repeating-linear-gradient veins (the previous approach) are perfectly
+     regular, so they read as a technical grid, not stone. Real marble
+     veining is organic/irregular — an SVG feTurbulence filter (fractal
+     noise, desaturated to grayscale) gives genuine organic grain, layered
+     under a couple of very soft radial "blotches" for large-scale cloudy
+     variation. Both still just white/off-white/gray, low opacity. */
   background-image:
-    radial-gradient(circle at 15% 20%, rgba(120, 118, 112, 0.10), transparent 40%),
-    radial-gradient(circle at 85% 5%, rgba(110, 108, 102, 0.08), transparent 38%),
-    radial-gradient(circle at 60% 85%, rgba(130, 128, 120, 0.09), transparent 45%),
-    radial-gradient(circle at 10% 90%, rgba(120, 118, 112, 0.07), transparent 35%),
-    repeating-linear-gradient(115deg, rgba(140, 138, 130, 0.05) 0px, rgba(140, 138, 130, 0.05) 1px, transparent 1px, transparent 68px),
-    repeating-linear-gradient(25deg, rgba(160, 158, 150, 0.045) 0px, rgba(160, 158, 150, 0.045) 1px, transparent 1px, transparent 94px);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='marble-noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.02' numOctaves='5' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23marble-noise)' opacity='0.5'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 15% 15%, rgba(120, 118, 112, 0.10), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(110, 108, 102, 0.08), transparent 42%),
+    radial-gradient(circle at 55% 90%, rgba(130, 128, 120, 0.09), transparent 48%);
   background-attachment: fixed;
 }
 
@@ -85,12 +86,12 @@ h1, h2, h3, h4 {
   @apply bg-transparent;
 }
 
-/* Thin scrollbar for the sidebar's internal scroll region (dark background) */
+/* Thin scrollbar for the sidebar's internal scroll region (light background) */
 .sidebar-scroll::-webkit-scrollbar {
   width: 5px;
 }
 .sidebar-scroll::-webkit-scrollbar-thumb {
-  @apply bg-white/15 rounded-full;
+  @apply bg-ink-900/15 rounded-full;
 }
 .sidebar-scroll::-webkit-scrollbar-track {
   @apply bg-transparent;
