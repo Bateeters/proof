@@ -16,8 +16,10 @@ All endpoints except `/auth/*` require `Authorization: Bearer <jwt>`.
 
 | Method | Route | Body | Notes |
 |---|---|---|---|
-| POST | `/auth/register` | `{ email, password }` | Hashes password (BCrypt), creates Account, returns `AuthResponseDto` (`{ token, account }`) — auto-login on register |
-| POST | `/auth/login` | `{ email, password }` | Verifies password, returns `AuthResponseDto` (`{ token, account }`). Nonexistent email and wrong password both return an identical `401` — no distinguishing info, to avoid account enumeration |
+| POST | `/auth/register` | `{ email, password }` | Hashes password (BCrypt), creates Account, returns `AuthResponseDto` (`{ token, account }`) — auto-login on register. Also sets the refresh-token cookie (see below). |
+| POST | `/auth/login` | `{ email, password }` | Verifies password, returns `AuthResponseDto` (`{ token, account }`). Nonexistent email and wrong password both return an identical `401` — no distinguishing info, to avoid account enumeration. Also sets the refresh-token cookie. |
+| POST | `/auth/refresh` | — (reads the `refreshToken` cookie) | Exchanges a valid, unexpired, non-revoked refresh token for a fresh access token, rotating the refresh token in the process (old one revoked, new one set as the cookie). `401` if the cookie is missing, expired, or already revoked — reuse of an already-revoked token revokes every active refresh token on the account as a stolen-token defense. Called automatically on app load so a page refresh doesn't log the user out. Returns `AuthResponseDto`. |
+| POST | `/auth/logout` | — | Revokes the current refresh token (if the cookie is present) and clears it. Returns `204 No Content`. |
 
 ## Lookup (reference data)
 

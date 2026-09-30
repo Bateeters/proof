@@ -54,12 +54,14 @@ Once that cache exists, "What Can I Make?" is just **our own SQL query** — no 
 
 The trade-off: our cache can go stale if TheCocktailDB's data changes upstream. Acceptable for a portfolio project; a production version would run the sync on a schedule.
 
-## Auth flow (MVP)
+## Auth flow
 
 1. `POST /api/auth/register` — Account created, password hashed with BCrypt, stored.
-2. `POST /api/auth/login` — credentials verified, short-lived JWT issued.
-3. Client stores the JWT **in memory** (React context/state), not `localStorage`. This is deliberate: `localStorage` is readable by any JS on the page, so a successful XSS attack anywhere in the app (or a compromised dependency) can steal every logged-in user's token. In-memory means a page refresh logs you out — that's an accepted trade-off for MVP. A production-grade fix (httpOnly refresh cookie + short-lived access token) is a documented stretch goal, not required for the portfolio version.
-4. Each API request sends `Authorization: Bearer <token>`; middleware validates it and attaches the identity to the request.
+2. `POST /api/auth/login` — credentials verified, a short-lived (60 min) JWT **access token** is returned in the response body, and a long-lived (30 day) **refresh token** is issued as an httpOnly, Secure, `SameSite=Lax` cookie scoped to `/api/auth`.
+3. Client keeps the access token **in memory only** (React context/state), never `localStorage` — `localStorage` is readable by any JS on the page, so an XSS attack or a compromised dependency could steal every logged-in user's token. The refresh token accomplishes the same "stay logged in" goal *without* that risk, since `httpOnly` makes it invisible to JavaScript entirely — this is the standard access-token/refresh-token split (updated 2026-09-30; the original MVP version just accepted "refresh logs you out" as a trade-off and flagged this as a stretch goal — it stopped being acceptable once real users were expected to hit it).
+4. On app load, the client silently calls `POST /api/auth/refresh` (browser sends the cookie automatically) to restore the session — a page refresh no longer logs anyone out. The refresh token **rotates** on every use (old one revoked, new one issued): if an already-revoked refresh token is ever presented again, that's treated as a theft signal and every active refresh token on the account is revoked, forcing a real login everywhere. Only the SHA-256 hash of a refresh token is ever stored server-side (`RefreshToken` table), same principle as password hashing.
+5. `POST /api/auth/logout` revokes the current refresh token server-side and clears the cookie.
+6. Each API request sends `Authorization: Bearer <access token>`; middleware validates it and attaches the identity to the request. (This part is unaffected by the refresh flow — the access token still travels as a header, only the refresh token is cookie-based.)
 
 ## Admin authorization
 
