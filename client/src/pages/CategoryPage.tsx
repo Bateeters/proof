@@ -39,7 +39,7 @@ export function CategoryPage() {
             {cocktails.length === 0 ? (
                 <p className="text-ink-600 italic">No cocktails found.</p>
             ) : (
-                <div className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(11rem,1fr))]">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                     {cocktails.map(cocktail => (
                         <CocktailCard
                             key={cocktail.id}

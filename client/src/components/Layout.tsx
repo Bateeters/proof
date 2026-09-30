@@ -9,7 +9,7 @@ export function Layout() {
     const navigate = useNavigate();
 
     return (
-        <div className="flex min-h-svh bg-marble-50">
+        <div className="flex min-h-svh">
             <Sidebar />
 
             <div className="flex-1 min-w-0">

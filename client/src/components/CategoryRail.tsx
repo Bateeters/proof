@@ -26,7 +26,7 @@ export function CategoryRail<T extends CocktailSummary>({ title, seeAllTo, cockt
             </div>
             <div className="flex gap-4 overflow-x-auto rail-scroll pb-3 -mx-1 px-1">
                 {cocktails.map(cocktail => (
-                    <div key={cocktail.id} className="w-44 shrink-0">
+                    <div key={cocktail.id} className="w-56 shrink-0">
                         <CocktailCard
                             id={cocktail.id}
                             name={cocktail.name}

@@ -23,7 +23,7 @@ export function WhoIsDrinkingPage() {
     }
 
     return (
-        <div className="min-h-svh bg-marble-50 flex flex-col items-center justify-center px-4">
+        <div className="min-h-svh flex flex-col items-center justify-center px-4">
             <h1 className="text-3xl mb-10">Who's Drinking?</h1>
 
             <div className="flex flex-wrap justify-center gap-8 max-w-3xl">

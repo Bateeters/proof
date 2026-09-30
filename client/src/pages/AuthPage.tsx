@@ -19,7 +19,7 @@ export function AuthPage() {
     }
 
     return (
-        <div className="min-h-svh flex items-center justify-center bg-marble-50 px-4">
+        <div className="min-h-svh flex items-center justify-center px-4">
             <div className="w-full max-w-md">
                 <h1 className="text-center text-4xl mb-1 tracking-wide">Proof</h1>
                 <p className="text-center text-ink-600 mb-10 text-sm tracking-[0.2em] uppercase">
