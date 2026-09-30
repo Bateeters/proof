@@ -7,8 +7,8 @@ import { useAuth } from "../context/AuthContext";
 // the right-side inset instead lives on the text via pr-4).
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `block rounded-l-md pl-3 pr-4 py-2 text-sm transition-colors ${isActive
-        ? "bg-gold-400/15 text-gold-600 font-medium"
-        : "text-ink-900 hover:bg-gold-400/10 hover:text-gold-600"
+        ? "bg-gold-600/15 text-gold-600 font-medium"
+        : "text-ink-900 hover:bg-gold-600/10 hover:text-gold-600"
     }`;
 
 export function Sidebar() {
@@ -33,7 +33,7 @@ export function Sidebar() {
         // moves, only its interior does.
         <aside
             className="sticky top-0 h-svh w-64 shrink-0 flex flex-col
-                bg-white/60 backdrop-blur-lg border-r border-gold-400/60
+                bg-white/60 backdrop-blur-lg border-r border-gold-600/60
                 shadow-[8px_0_30px_-4px_rgba(0,0,0,0.15)]"
         >
             <div className="shrink-0 pl-4 pr-4 pt-6 pb-4">
