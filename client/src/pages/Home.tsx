@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
-import type { SubmitEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfileContext";
 import { CategoryRail } from "../components/CategoryRail";
-import type { CategoryPreview } from "../types/Cocktail";
+import { CocktailCard } from "../components/CocktailCard";
+import type { CategoryPreview, CocktailSummary } from "../types/Cocktail";
 import type { RankedCocktail } from "../types/Preferences";
 
 export function Home() {
     const { token } = useAuth();
     const { activeProfile } = useProfiles();
-    const navigate = useNavigate();
     const [previews, setPreviews] = useState<CategoryPreview[]>([]);
     const [recommended, setRecommended] = useState<RankedCocktail[]>([]);
     const [search, setSearch] = useState('');
+    const [searchResults, setSearchResults] = useState<CocktailSummary[]>([]);
 
     useEffect(() => {
         if (!token) return;
@@ -38,11 +37,23 @@ export function Home() {
             .then((data: RankedCocktail[]) => setRecommended(data.slice(0, 10)));
     }, [token, activeProfile]);
 
-    function handleSearch(e: SubmitEvent) {
-        e.preventDefault();
-        if (!search.trim()) return;
-        navigate(`/search?q=${encodeURIComponent(search.trim())}`);
-    }
+    // Same live-as-you-type pattern as CategoryPage, just without a category
+    // filter -- searches the whole synced catalog instead of one slice of it.
+    useEffect(() => {
+        if (!token || !search.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        const params = new URLSearchParams({ search: search.trim() });
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails?${params}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(response => response.json())
+            .then(setSearchResults);
+    }, [token, search]);
+
+    const isSearching = search.trim().length > 0;
 
     return (
         <div>
@@ -56,34 +67,52 @@ export function Home() {
                     </p>
                 </div>
 
-                <form onSubmit={handleSearch} className="flex justify-end">
-                    <input
-                        className="field-input w-full max-w-sm"
-                        type="text"
-                        placeholder="Search drinks..."
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                    />
-                </form>
+                <input
+                    className="field-input w-full max-w-sm"
+                    type="text"
+                    placeholder="Search drinks..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                />
             </div>
 
-            {recommended.length > 0 && (
-                <CategoryRail
-                    title="Recommended For You"
-                    seeAllTo="/recommendations"
-                    cocktails={recommended}
-                    subtitleFor={c => `Match score: ${c.matchScore}`}
-                />
-            )}
+            {isSearching ? (
+                searchResults.length === 0 ? (
+                    <p className="text-ink-600 italic">No cocktails found.</p>
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {searchResults.map(cocktail => (
+                            <CocktailCard
+                                key={cocktail.id}
+                                id={cocktail.id}
+                                name={cocktail.name}
+                                category={cocktail.category}
+                                imageUrl={cocktail.imageUrl}
+                            />
+                        ))}
+                    </div>
+                )
+            ) : (
+                <>
+                    {recommended.length > 0 && (
+                        <CategoryRail
+                            title="Recommended For You"
+                            seeAllTo="/recommendations"
+                            cocktails={recommended}
+                            subtitleFor={c => `Match score: ${c.matchScore}`}
+                        />
+                    )}
 
-            {previews.map(preview => (
-                <CategoryRail
-                    key={preview.category}
-                    title={preview.category}
-                    seeAllTo={`/category/${encodeURIComponent(preview.category)}`}
-                    cocktails={preview.cocktails}
-                />
-            ))}
+                    {previews.map(preview => (
+                        <CategoryRail
+                            key={preview.category}
+                            title={preview.category}
+                            seeAllTo={`/category/${encodeURIComponent(preview.category)}`}
+                            cocktails={preview.cocktails}
+                        />
+                    ))}
+                </>
+            )}
         </div>
     );
 }
