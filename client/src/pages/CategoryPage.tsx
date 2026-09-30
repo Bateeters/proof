@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { CocktailCard } from "../components/CocktailCard";
 import type { CocktailSummary } from "../types/Cocktail";
@@ -25,20 +25,20 @@ export function CategoryPage() {
 
     return (
         <div>
-            <div className="mb-6">
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                    <h1 className="text-3xl">{categoryName}</h1>
-                    <Link to="/cookbook" className="btn-primary">Your Cookbook</Link>
-                </div>
-                <div className="flex justify-end">
-                    <input
-                        className="field-input w-64"
-                        type="text"
-                        placeholder={`Search ${categoryName}...`}
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                    />
-                </div>
+            {/* Stacked (title, then full-width search) below the lg
+                breakpoint -- a half-width search bar next to a category
+                name gets cramped on tablet/mobile. At lg and up, they share
+                one row, search capped at 50% of it via max-w-[50%] so a
+                long category name always has room. */}
+            <div className="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <h1 className="text-3xl">{categoryName}</h1>
+                <input
+                    className="field-input w-full lg:w-80 lg:max-w-[50%]"
+                    type="text"
+                    placeholder={`Search ${categoryName}...`}
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                />
             </div>
 
             {cocktails.length === 0 ? (

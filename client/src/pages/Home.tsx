@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { SubmitEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfileContext";
 import { CategoryRail } from "../components/CategoryRail";
@@ -46,7 +46,7 @@ export function Home() {
 
     return (
         <div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 mb-10">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
                 <div>
                     <h1 className="text-3xl mb-1">Good to see you.</h1>
                     <p className="text-ink-600">
@@ -56,7 +56,7 @@ export function Home() {
                     </p>
                 </div>
 
-                <form onSubmit={handleSearch} className="flex justify-center w-full">
+                <form onSubmit={handleSearch} className="flex justify-end">
                     <input
                         className="field-input w-full max-w-sm"
                         type="text"
@@ -65,10 +65,6 @@ export function Home() {
                         onChange={e => setSearch(e.target.value)}
                     />
                 </form>
-
-                <div className="flex justify-start sm:justify-end">
-                    <Link to="/cookbook" className="btn-primary">Your Cookbook</Link>
-                </div>
             </div>
 
             {recommended.length > 0 && (
