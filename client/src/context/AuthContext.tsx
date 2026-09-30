@@ -5,6 +5,14 @@ type AuthContextValue = {
     token: string | null;
     account: Account | null;
     isLoading: boolean;
+    // True only right after an explicit login form submission, never after
+    // the silent refresh-on-page-load restore below. ProfileContext uses
+    // this to decide whether to re-show the profile picker on a fresh login
+    // (even if a profile was remembered) vs. silently restoring it on a
+    // plain page refresh. Cleared once a profile has been resolved for
+    // this login — see ProfileContext.clearJustLoggedIn.
+    justLoggedIn: boolean;
+    clearJustLoggedIn: () => void;
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, password: string) => Promise<void>;
     logout: () => void
@@ -20,6 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // before deciding to show the login screen, so a page refresh doesn't
     // flash the login form before the silent-refresh check below finishes.
     const [isLoading, setIsLoading] = useState(true);
+    const [justLoggedIn, setJustLoggedIn] = useState(false);
 
     useEffect(() => {
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh`, {
@@ -56,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setAccount(data.account);
         setToken(data.token);
+        setJustLoggedIn(true);
     }
 
     async function register(email: string, password: string) {
@@ -85,7 +95,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAccount(null);
     }
 
-    const value: AuthContextValue = { token, account, isLoading, login, register, logout };
+    function clearJustLoggedIn() {
+        setJustLoggedIn(false);
+    }
+
+    const value: AuthContextValue = {
+        token, account, isLoading, justLoggedIn, clearJustLoggedIn, login, register, logout
+    };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

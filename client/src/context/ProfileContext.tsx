@@ -22,7 +22,7 @@ function storageKey(accountId: string) {
 }
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
-    const { token, account } = useAuth();
+    const { token, account, justLoggedIn, clearJustLoggedIn } = useAuth();
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [activeProfile, setActiveProfileState] = useState<Profile | null>(null);
     const [profilesLoaded, setProfilesLoaded] = useState(false);
@@ -42,21 +42,38 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             .then((data: Profile[]) => {
                 setProfiles(data);
 
-                const rememberedId = localStorage.getItem(storageKey(account.id));
-                const remembered = data.find(p => p.id === rememberedId);
-                if (remembered) {
-                    setActiveProfileState(remembered);
+                if (data.length === 1) {
+                    // Only one profile ever exists to pick — never worth
+                    // making someone click through a picker for a choice
+                    // that isn't actually a choice.
+                    setActiveProfileState(data[0]);
+                    localStorage.setItem(storageKey(account.id), data[0].id);
+                } else if (data.length > 1 && !justLoggedIn) {
+                    // Multiple profiles, but this is a silent session
+                    // restore (page refresh), not a fresh login — respect
+                    // whatever was last selected instead of re-prompting.
+                    const rememberedId = localStorage.getItem(storageKey(account.id));
+                    const remembered = data.find(p => p.id === rememberedId);
+                    if (remembered) {
+                        setActiveProfileState(remembered);
+                    }
                 }
+                // Otherwise (multiple profiles + just logged in, or zero
+                // profiles): leave activeProfile null so RequireProfile
+                // sends them to the "Who's Drinking?" picker.
 
                 setProfilesLoaded(true);
             });
-    }, [token, account]);
+    }, [token, account, justLoggedIn]);
 
     function setActiveProfile(profile: Profile) {
         setActiveProfileState(profile);
         if (account) {
             localStorage.setItem(storageKey(account.id), profile.id);
         }
+        // A profile has now been resolved for this login — later refreshes
+        // in the same session should go back to silently restoring it.
+        clearJustLoggedIn();
     }
 
     async function createProfile(displayName: string, avatarColor?: string) {
