@@ -93,6 +93,18 @@ public class CocktailsController : ControllerBase
         return Ok(cocktailDetailDto);
     }
 
+    [HttpGet("categories")]
+    public async Task<IActionResult> GetCategories()
+    {
+        var categories = await _context.Cocktails
+            .Select(c => c.Category)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync();
+
+        return Ok(categories);
+    }
+
     [HttpGet("browse")]
     public async Task<IActionResult> Browse([FromQuery] int perCategory = 4)
     {
