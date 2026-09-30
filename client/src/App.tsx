@@ -8,6 +8,7 @@ import { Home } from './pages/Home'
 import { CategoryPage } from './pages/CategoryPage'
 import { SearchResultsPage } from './pages/SearchResultsPage'
 import { CocktailDetailPage } from './pages/CocktailDetailPage'
+import { AccountSettingsPage } from './pages/AccountSettingsPage'
 import { PreferencesEditor } from './components/PreferencesEditor'
 import { Recommendations } from './components/Recommendations'
 import { Cookbook } from './components/Cookbook'
@@ -31,6 +32,7 @@ function App() {
             <Route path="/cookbook" element={<div className="max-w-3xl"><Cookbook /></div>} />
             <Route path="/what-can-i-make" element={<div className="max-w-3xl"><WhatCanIMake /></div>} />
             <Route path="/preferences" element={<div className="max-w-3xl"><PreferencesEditor /></div>} />
+            <Route path="/account" element={<AccountSettingsPage />} />
           </Route>
         </Route>
       </Route>
