@@ -9,4 +9,5 @@ public class CocktailDetailDto
     public string? ImageUrl { get; set; }
     public required string Instructions { get; set; }
     public required List<CocktailIngredientDto> Ingredients { get; set; }
+    public List<string> FlavorTags { get; set; } = [];
 }

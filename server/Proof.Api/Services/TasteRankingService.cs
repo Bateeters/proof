@@ -43,7 +43,7 @@ public class TasteRankingService
 
         var cocktails = await _context.Cocktails
             .Include(c => c.CocktailIngredients).ThenInclude(ci => ci.Ingredient)
-            .Include(c => c.CocktailFlavorTags)
+            .Include(c => c.CocktailFlavorTags).ThenInclude(cft => cft.FlavorTag)
             .ToListAsync();
 
         var ranked = new List<RankedCocktailDto>();
@@ -92,6 +92,7 @@ public class TasteRankingService
                 Category = cocktail.Category,
                 Glass = cocktail.Glass,
                 ImageUrl = cocktail.ImageUrl,
+                FlavorTags = cocktail.CocktailFlavorTags.Select(cft => cft.FlavorTag.Name).ToList(),
                 MatchScore = score
             });
         }

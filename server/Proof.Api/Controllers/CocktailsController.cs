@@ -54,7 +54,8 @@ public class CocktailsController : ControllerBase
                 Name = c.Name,
                 Category = c.Category,
                 Glass = c.Glass,
-                ImageUrl = c.ImageUrl
+                ImageUrl = c.ImageUrl,
+                FlavorTags = c.CocktailFlavorTags.Select(cft => cft.FlavorTag.Name).ToList()
             })
             .ToListAsync();
 
@@ -67,6 +68,8 @@ public class CocktailsController : ControllerBase
         var cocktail = await _context.Cocktails
             .Include(c => c.CocktailIngredients)
             .ThenInclude(ci => ci.Ingredient)
+            .Include(c => c.CocktailFlavorTags)
+            .ThenInclude(cft => cft.FlavorTag)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (cocktail == null)
@@ -87,7 +90,8 @@ public class CocktailsController : ControllerBase
                 IngredientId = ci.IngredientId,
                 IngredientName = ci.Ingredient.Name,
                 Measure = ci.Measure
-            }).ToList()
+            }).ToList(),
+            FlavorTags = cocktail.CocktailFlavorTags.Select(cft => cft.FlavorTag.Name).ToList()
         };
 
         return Ok(cocktailDetailDto);
@@ -128,7 +132,8 @@ public class CocktailsController : ControllerBase
                     Name = c.Name,
                     Category = c.Category,
                     Glass = c.Glass,
-                    ImageUrl = c.ImageUrl
+                    ImageUrl = c.ImageUrl,
+                    FlavorTags = c.CocktailFlavorTags.Select(cft => cft.FlavorTag.Name).ToList()
                 })
                 .ToListAsync();
 

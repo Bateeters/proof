@@ -218,6 +218,7 @@ public class ProfilesController : ControllerBase
                 CocktailName = e.Cocktail.Name,
                 CocktailCategory = e.Cocktail.Category,
                 CocktailImageUrl = e.Cocktail.ImageUrl,
+                FlavorTags = e.Cocktail.CocktailFlavorTags.Select(cft => cft.FlavorTag.Name).ToList(),
                 SavedAt = e.SavedAt,
                 Notes = e.Notes
             })
