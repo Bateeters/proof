@@ -9,6 +9,8 @@ import type { ProfilePreferences, Sentiment } from "../types/Preferences";
 // as a plain falsy sentinel rather than a third enum-ish value.
 type SentimentChoice = Sentiment | '';
 
+const radioLabelClass = "inline-flex items-center gap-1.5 text-sm text-ink-700";
+
 export function PreferencesEditor() {
     const { token } = useAuth();
     const { activeProfile } = useProfiles();
@@ -95,107 +97,125 @@ export function PreferencesEditor() {
     }
 
     if (!activeProfile) {
-        return <p className="empty-state">Select a profile to set taste preferences.</p>;
+        return <p className="text-ink-600 italic">Select a profile to set taste preferences.</p>;
     }
 
     return (
         <div>
-            <p>For {activeProfile.displayName}.</p>
+            <h1 className="text-3xl mb-1">Taste Preferences</h1>
+            <p className="text-ink-600 mb-6">For {activeProfile.displayName}.</p>
+
             <form onSubmit={handleSave}>
-                <h3>Spirits</h3>
-                {spirits.map(spirit => (
-                    <div key={spirit.id} className="preference-row">
-                        <span className="preference-name">{spirit.name}</span>{' '}
-                        <label>
-                            <input
-                                type="radio"
-                                name={`spirit-${spirit.id}`}
-                                checked={spiritSentiments[spirit.id] === 'Positive'}
-                                onChange={() => setSpiritSentiments(prev => ({ ...prev, [spirit.id]: 'Positive' }))}
-                            /> Likes
-                        </label>{' '}
-                        <label>
-                            <input
-                                type="radio"
-                                name={`spirit-${spirit.id}`}
-                                checked={spiritSentiments[spirit.id] === 'Negative'}
-                                onChange={() => setSpiritSentiments(prev => ({ ...prev, [spirit.id]: 'Negative' }))}
-                            /> Dislikes
-                        </label>{' '}
-                        <label>
-                            <input
-                                type="radio"
-                                name={`spirit-${spirit.id}`}
-                                checked={!spiritSentiments[spirit.id]}
-                                onChange={() => setSpiritSentiments(prev => ({ ...prev, [spirit.id]: '' }))}
-                            /> No opinion
-                        </label>
-                    </div>
-                ))}
+                <h2 className="text-xl mb-3">Spirits</h2>
+                <div className="bg-white border border-marble-300 rounded-lg divide-y divide-marble-200 mb-8">
+                    {spirits.map(spirit => (
+                        <div key={spirit.id} className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
+                            <span className="min-w-28 font-medium text-ink-900">{spirit.name}</span>
+                            <label className={radioLabelClass}>
+                                <input
+                                    type="radio"
+                                    name={`spirit-${spirit.id}`}
+                                    checked={spiritSentiments[spirit.id] === 'Positive'}
+                                    onChange={() => setSpiritSentiments(prev => ({ ...prev, [spirit.id]: 'Positive' }))}
+                                /> Likes
+                            </label>
+                            <label className={radioLabelClass}>
+                                <input
+                                    type="radio"
+                                    name={`spirit-${spirit.id}`}
+                                    checked={spiritSentiments[spirit.id] === 'Negative'}
+                                    onChange={() => setSpiritSentiments(prev => ({ ...prev, [spirit.id]: 'Negative' }))}
+                                /> Dislikes
+                            </label>
+                            <label className={radioLabelClass}>
+                                <input
+                                    type="radio"
+                                    name={`spirit-${spirit.id}`}
+                                    checked={!spiritSentiments[spirit.id]}
+                                    onChange={() => setSpiritSentiments(prev => ({ ...prev, [spirit.id]: '' }))}
+                                /> No opinion
+                            </label>
+                        </div>
+                    ))}
+                </div>
 
-                <h3>Flavors</h3>
-                {flavorTags.map(flavorTag => (
-                    <div key={flavorTag.id} className="preference-row">
-                        <span className="preference-name">{flavorTag.name}</span>{' '}
-                        <label>
-                            <input
-                                type="radio"
-                                name={`flavor-${flavorTag.id}`}
-                                checked={flavorSentiments[flavorTag.id] === 'Positive'}
-                                onChange={() => setFlavorSentiments(prev => ({ ...prev, [flavorTag.id]: 'Positive' }))}
-                            /> Prefers
-                        </label>{' '}
-                        <label>
-                            <input
-                                type="radio"
-                                name={`flavor-${flavorTag.id}`}
-                                checked={flavorSentiments[flavorTag.id] === 'Negative'}
-                                onChange={() => setFlavorSentiments(prev => ({ ...prev, [flavorTag.id]: 'Negative' }))}
-                            /> Avoids
-                        </label>{' '}
-                        <label>
-                            <input
-                                type="radio"
-                                name={`flavor-${flavorTag.id}`}
-                                checked={!flavorSentiments[flavorTag.id]}
-                                onChange={() => setFlavorSentiments(prev => ({ ...prev, [flavorTag.id]: '' }))}
-                            /> No opinion
-                        </label>
-                    </div>
-                ))}
+                <h2 className="text-xl mb-3">Flavors</h2>
+                <div className="bg-white border border-marble-300 rounded-lg divide-y divide-marble-200 mb-8">
+                    {flavorTags.map(flavorTag => (
+                        <div key={flavorTag.id} className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
+                            <span className="min-w-28 font-medium text-ink-900">{flavorTag.name}</span>
+                            <label className={radioLabelClass}>
+                                <input
+                                    type="radio"
+                                    name={`flavor-${flavorTag.id}`}
+                                    checked={flavorSentiments[flavorTag.id] === 'Positive'}
+                                    onChange={() => setFlavorSentiments(prev => ({ ...prev, [flavorTag.id]: 'Positive' }))}
+                                /> Prefers
+                            </label>
+                            <label className={radioLabelClass}>
+                                <input
+                                    type="radio"
+                                    name={`flavor-${flavorTag.id}`}
+                                    checked={flavorSentiments[flavorTag.id] === 'Negative'}
+                                    onChange={() => setFlavorSentiments(prev => ({ ...prev, [flavorTag.id]: 'Negative' }))}
+                                /> Avoids
+                            </label>
+                            <label className={radioLabelClass}>
+                                <input
+                                    type="radio"
+                                    name={`flavor-${flavorTag.id}`}
+                                    checked={!flavorSentiments[flavorTag.id]}
+                                    onChange={() => setFlavorSentiments(prev => ({ ...prev, [flavorTag.id]: '' }))}
+                                /> No opinion
+                            </label>
+                        </div>
+                    ))}
+                </div>
 
-                <h3>Allergens</h3>
-                <p className="disclaimer">
+                <h2 className="text-xl mb-3">Allergens</h2>
+                <p className="text-sm text-ink-600 mb-3">
                     Matched against ingredient names on a best-effort basis — not a guarantee.
                     Always double-check ingredients yourself for severe allergies.
                 </p>
                 {allergens.length === 0 ? (
-                    <p className="empty-state">No allergens set.</p>
+                    <p className="text-ink-600 italic mb-3">No allergens set.</p>
                 ) : (
-                    <ul>
+                    <ul className="flex flex-wrap gap-2 mb-3">
                         {allergens.map(allergen => (
-                            <li key={allergen}>
-                                {allergen}{' '}
-                                <button type="button" className="button-danger" onClick={() => removeAllergen(allergen)}>Remove</button>
+                            <li
+                                key={allergen}
+                                className="flex items-center gap-2 bg-white border border-marble-300 rounded-full pl-3 pr-1 py-1 text-sm"
+                            >
+                                {allergen}
+                                <button
+                                    type="button"
+                                    className="text-xs text-red-700 hover:bg-red-50 rounded-full px-2 py-0.5"
+                                    onClick={() => removeAllergen(allergen)}
+                                >
+                                    Remove
+                                </button>
                             </li>
                         ))}
                     </ul>
                 )}
-                <div>
-                    <label htmlFor="allergen-input">Add an allergen</label>
-                    <input
-                        id="allergen-input"
-                        type="text"
-                        value={allergenInput}
-                        onChange={e => setAllergenInput(e.target.value)}
-                        placeholder="e.g. dairy, tree nuts"
-                    />
+                <div className="flex flex-wrap items-end gap-3 mb-8">
+                    <div>
+                        <label className="field-label" htmlFor="allergen-input">Add an allergen</label>
+                        <input
+                            id="allergen-input"
+                            className="field-input"
+                            type="text"
+                            value={allergenInput}
+                            onChange={e => setAllergenInput(e.target.value)}
+                            placeholder="e.g. dairy, tree nuts"
+                        />
+                    </div>
+                    <button type="button" className="btn-secondary" onClick={addAllergen}>Add Allergen</button>
                 </div>
-                <button type="button" onClick={addAllergen}>Add Allergen</button>
 
-                <div>
-                    <button type="submit">Save Preferences</button>
-                    {saved && <span> Saved!</span>}
+                <div className="flex items-center gap-3">
+                    <button type="submit" className="btn-primary">Save Preferences</button>
+                    {saved && <span className="text-sm text-gold-600">Saved!</span>}
                 </div>
             </form>
         </div>

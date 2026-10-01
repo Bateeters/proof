@@ -37,48 +37,62 @@ export function WhatCanIMake() {
 
     return (
         <div>
-            <h2>What Can I Make?</h2>
-            <p>List what you have on hand, then see what you can make (or almost make).</p>
+            <h1 className="text-3xl mb-1">What Can I Make?</h1>
+            <p className="text-ink-600 mb-6">List what you have on hand, then see what you can make (or almost make).</p>
 
             {haveIngredients.length > 0 && (
-                <ul>
+                <ul className="flex flex-wrap gap-2 mb-4">
                     {haveIngredients.map(ingredient => (
-                        <li key={ingredient}>
-                            {ingredient}{' '}
-                            <button type="button" className="button-danger" onClick={() => removeIngredient(ingredient)}>Remove</button>
+                        <li
+                            key={ingredient}
+                            className="flex items-center gap-2 bg-white border border-marble-300 rounded-full pl-3 pr-1 py-1 text-sm"
+                        >
+                            {ingredient}
+                            <button
+                                type="button"
+                                className="text-xs text-red-700 hover:bg-red-50 rounded-full px-2 py-0.5"
+                                onClick={() => removeIngredient(ingredient)}
+                            >
+                                Remove
+                            </button>
                         </li>
                     ))}
                 </ul>
             )}
 
-            <form onSubmit={handleSearch}>
+            <form onSubmit={handleSearch} className="flex flex-wrap items-end gap-3 mb-6">
                 <div>
-                    <label htmlFor="have-ingredient-input">Ingredient</label>
+                    <label className="field-label" htmlFor="have-ingredient-input">Ingredient</label>
                     <input
                         id="have-ingredient-input"
+                        className="field-input"
                         type="text"
                         value={ingredientInput}
                         onChange={e => setIngredientInput(e.target.value)}
                         placeholder="e.g. vodka, lime, mint"
                     />
                 </div>
-                <button type="button" onClick={addIngredient}>Add Ingredient</button>
-                <button type="submit">Find Cocktails</button>
+                <button type="button" className="btn-secondary" onClick={addIngredient}>Add Ingredient</button>
+                <button type="submit" className="btn-primary">Find Cocktails</button>
             </form>
 
             {searched && results.length === 0 && (
-                <p className="empty-state">No cocktails match anything in that list.</p>
+                <p className="text-ink-600 italic">No cocktails match anything in that list.</p>
             )}
 
             {searched && results.length > 0 && (
-                <ul>
+                <ul className="flex flex-col gap-3">
                     {results.map(cocktail => (
-                        <li key={cocktail.id}>
-                            <strong>{cocktail.name}</strong> | {cocktail.category}
-                            {' — '}
-                            {cocktail.missingIngredients.length === 0
-                                ? 'You have everything!'
-                                : `Missing: ${cocktail.missingIngredients.join(', ')}`}
+                        <li
+                            key={cocktail.id}
+                            className="bg-white border border-marble-300 rounded-lg px-4 py-3"
+                        >
+                            <p className="font-medium text-ink-900">{cocktail.name} <span className="text-ink-600 font-normal">| {cocktail.category}</span></p>
+                            <p className="text-sm text-ink-600">
+                                {cocktail.missingIngredients.length === 0
+                                    ? 'You have everything!'
+                                    : `Missing: ${cocktail.missingIngredients.join(', ')}`}
+                            </p>
                         </li>
                     ))}
                 </ul>

@@ -3,7 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfileContext";
 
-// Cookbook + Log Out: same off-white-turns-white treatment.
+// Drink Menu + Log Out: same off-white-turns-white treatment.
 const lightButtonClass =
     "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium " +
     "bg-white/80 border border-white text-ink-900 hover:bg-white transition-colors";
@@ -26,7 +26,7 @@ export function Layout() {
             <div className="flex-1 min-w-0">
                 <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gold-600/30 bg-gold-600 px-8 py-4 sticky top-0 z-10">
                     <div className="flex items-center gap-3">
-                        <Link to="/cookbook" className={lightButtonClass}>Your Cookbook</Link>
+                        <Link to="/cookbook" className={lightButtonClass}>Your Drink Menu</Link>
 
                         {/* RequireProfile guarantees activeProfile is set for
                             every route this header renders on, so this is safe.

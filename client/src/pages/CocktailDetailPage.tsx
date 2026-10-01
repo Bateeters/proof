@@ -22,7 +22,7 @@ export function CocktailDetailPage() {
             .then(setCocktail);
     }, [token, cocktailId]);
 
-    async function handleSaveToCookbook() {
+    async function handleSaveToDrinkMenu() {
         if (!activeProfile || !cocktail) return;
 
         await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profiles/${activeProfile.id}/cookbook`, {
@@ -34,7 +34,7 @@ export function CocktailDetailPage() {
             body: JSON.stringify({ cocktailId: cocktail.id }),
         });
 
-        setSaveMessage('Saved to cookbook!');
+        setSaveMessage('Saved to your drink menu!');
     }
 
     if (!cocktail) {
@@ -81,7 +81,7 @@ export function CocktailDetailPage() {
 
                     {activeProfile && (
                         <div className="flex items-center gap-3">
-                            <button className="btn-primary" onClick={handleSaveToCookbook}>Save To Cookbook</button>
+                            <button className="btn-primary" onClick={handleSaveToDrinkMenu}>Save To Drink Menu</button>
                             {saveMessage && <span className="text-sm text-gold-600">{saveMessage}</span>}
                         </div>
                     )}

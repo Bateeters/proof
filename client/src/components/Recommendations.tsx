@@ -21,7 +21,7 @@ export function Recommendations() {
         setLoaded(true);
     }
 
-    async function handleSaveToCookbook(cocktailId: string) {
+    async function handleSaveToDrinkMenu(cocktailId: string) {
         if (!activeProfile) return;
 
         await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profiles/${activeProfile.id}/cookbook`, {
@@ -35,25 +35,31 @@ export function Recommendations() {
     }
 
     if (!activeProfile) {
-        return <p className="empty-state">Select a profile to see recommendations.</p>;
+        return <p className="text-ink-600 italic">Select a profile to see recommendations.</p>;
     }
 
     return (
         <div>
-            <p>For {activeProfile.displayName}.</p>
-            <button onClick={loadRecommendations}>Refresh Recommendations</button>
+            <h1 className="text-3xl mb-1">Recommended For You</h1>
+            <p className="text-ink-600 mb-6">For {activeProfile.displayName}.</p>
+
+            <button className="btn-secondary mb-6" onClick={loadRecommendations}>Refresh Recommendations</button>
 
             {loaded && ranked.length === 0 && (
-                <p className="empty-state">No cocktails to show — every match is excluded by an allergen on this profile.</p>
+                <p className="text-ink-600 italic">No cocktails to show — every match is excluded by an allergen on this profile.</p>
             )}
 
             {loaded && ranked.length > 0 && (
-                <ul>
+                <ul className="flex flex-col gap-3">
                     {ranked.map(cocktail => (
-                        <li key={cocktail.id}>
-                            <strong>{cocktail.name}</strong> | {cocktail.category} | match score: {cocktail.matchScore}
-                            {' '}
-                            <button onClick={() => handleSaveToCookbook(cocktail.id)}>Save To Cookbook</button>
+                        <li
+                            key={cocktail.id}
+                            className="flex flex-wrap items-center justify-between gap-3 bg-white border border-marble-300 rounded-lg px-4 py-3"
+                        >
+                            <p className="font-medium text-ink-900">
+                                {cocktail.name} <span className="text-ink-600 font-normal">| {cocktail.category} | match score: {cocktail.matchScore}</span>
+                            </p>
+                            <button className="btn-secondary" onClick={() => handleSaveToDrinkMenu(cocktail.id)}>Save To Drink Menu</button>
                         </li>
                     ))}
                 </ul>
