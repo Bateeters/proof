@@ -5,13 +5,16 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { ProfileProvider } from './context/ProfileContext.tsx'
+import { CookbookProvider } from './context/CookbookContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <ProfileProvider>
-          <App />
+          <CookbookProvider>
+            <App />
+          </CookbookProvider>
         </ProfileProvider>
       </AuthProvider>
     </BrowserRouter>

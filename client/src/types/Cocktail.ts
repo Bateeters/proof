@@ -4,6 +4,7 @@ export type CocktailSummary = {
     category: string;
     glass: string;
     imageUrl: string | null;
+    flavorTags: string[];
 }
 
 export type CocktailDetail = CocktailSummary & {

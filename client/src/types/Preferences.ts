@@ -24,5 +24,6 @@ export type RankedCocktail = {
     category: string;
     glass: string;
     imageUrl: string | null;
+    flavorTags: string[];
     matchScore: number;
 }

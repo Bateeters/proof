@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfileContext";
+import { useCookbook } from "../context/CookbookContext";
 import { CocktailCard } from "./CocktailCard";
 import type { CookbookEntry } from "../types/Cookbook";
 
 export function Cookbook() {
     const { token } = useAuth();
     const { activeProfile } = useProfiles();
+    const { savedIds } = useCookbook();
     const [entries, setEntries] = useState<CookbookEntry[]>([]);
     const [search, setSearch] = useState('');
 
-    function loadCookbook() {
+    useEffect(() => {
         if (!token || !activeProfile) return;
 
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profiles/${activeProfile.id}/cookbook`, {
@@ -18,33 +20,21 @@ export function Cookbook() {
         })
             .then(response => response.json())
             .then(setEntries);
-    }
-
-    useEffect(loadCookbook, [token, activeProfile]);
-
-    async function handleRemove(cocktailId: string) {
-        if (!activeProfile) return;
-
-        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profiles/${activeProfile.id}/cookbook/${cocktailId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        setEntries(prev => prev.filter(entry => entry.cocktailId !== cocktailId));
-    }
+    }, [token, activeProfile]);
 
     if (!activeProfile) {
         return <p className="text-ink-600 italic">Select a profile to see its drink menu.</p>;
     }
 
-    // Client-side filter, not a new request per keystroke -- unlike the
-    // catalog-wide searches elsewhere, this is only ever filtering a
-    // profile's own (typically small) saved list that's already loaded,
-    // so there's nothing to gain from round-tripping to the server for it.
+    // Removing via a card's own heart icon (CookbookContext.savedIds) should
+    // drop it from this grid immediately, without waiting on a re-fetch --
+    // filtering the fetched entries by the shared live set gets that for
+    // free. The fetch above still supplies the actual display data
+    // (name/image/etc) that savedIds alone doesn't carry.
     const normalizedSearch = search.trim().toLowerCase();
-    const filteredEntries = normalizedSearch
-        ? entries.filter(entry => entry.cocktailName.toLowerCase().includes(normalizedSearch))
-        : entries;
+    const visibleEntries = entries
+        .filter(entry => savedIds.has(entry.cocktailId))
+        .filter(entry => !normalizedSearch || entry.cocktailName.toLowerCase().includes(normalizedSearch));
 
     return (
         <div className="w-full">
@@ -64,34 +54,21 @@ export function Cookbook() {
 
             {entries.length === 0 ? (
                 <p className="text-ink-600 italic">Nothing saved yet.</p>
-            ) : filteredEntries.length === 0 ? (
-                <p className="text-ink-600 italic">No saved drinks match that search.</p>
+            ) : visibleEntries.length === 0 ? (
+                <p className="text-ink-600 italic">
+                    {normalizedSearch ? "No saved drinks match that search." : "Nothing saved yet."}
+                </p>
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {filteredEntries.map(entry => (
-                        <div key={entry.cocktailId} className="relative">
-                            <CocktailCard
-                                id={entry.cocktailId}
-                                name={entry.cocktailName}
-                                category={entry.cocktailCategory}
-                                imageUrl={entry.cocktailImageUrl}
-                            />
-                            {/* Sibling of the card's own <Link>, not a child of
-                                it, so clicking Remove never also triggers the
-                                card's navigation -- the button simply sits on
-                                top of it via absolute positioning + z-index. */}
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleRemove(entry.cocktailId);
-                                }}
-                                className="absolute top-2 right-2 z-10 rounded-full bg-white/90 hover:bg-white
-                                    text-red-700 text-xs font-medium px-2.5 py-1 shadow"
-                            >
-                                Remove
-                            </button>
-                        </div>
+                    {visibleEntries.map(entry => (
+                        <CocktailCard
+                            key={entry.cocktailId}
+                            id={entry.cocktailId}
+                            name={entry.cocktailName}
+                            category={entry.cocktailCategory}
+                            imageUrl={entry.cocktailImageUrl}
+                            flavorTags={entry.flavorTags}
+                        />
                     ))}
                 </div>
             )}

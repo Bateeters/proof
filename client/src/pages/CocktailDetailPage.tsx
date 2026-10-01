@@ -58,7 +58,20 @@ export function CocktailDetailPage() {
 
                 <div>
                     <h1 className="text-3xl mb-1">{cocktail.name}</h1>
-                    <p className="text-ink-600 mb-6">{cocktail.category} &middot; {cocktail.glass}</p>
+                    <p className="text-ink-600 mb-3">{cocktail.category} &middot; {cocktail.glass}</p>
+
+                    {cocktail.flavorTags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-6">
+                            {cocktail.flavorTags.map(tag => (
+                                <span
+                                    key={tag}
+                                    className="rounded-full bg-gold-400/15 text-gold-600 text-xs font-medium px-3 py-1"
+                                >
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
 
                     <h2 className="text-base mb-2">Ingredients</h2>
                     <ul className="flex flex-col gap-2 mb-6">

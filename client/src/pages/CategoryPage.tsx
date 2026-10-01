@@ -52,6 +52,7 @@ export function CategoryPage() {
                             name={cocktail.name}
                             category={cocktail.category}
                             imageUrl={cocktail.imageUrl}
+                            flavorTags={cocktail.flavorTags}
                         />
                     ))}
                 </div>

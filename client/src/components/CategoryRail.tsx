@@ -44,6 +44,7 @@ export function CategoryRail<T extends CocktailSummary>({ title, seeAllTo, cockt
                             category={cocktail.category}
                             imageUrl={cocktail.imageUrl}
                             subtitle={subtitleFor?.(cocktail)}
+                            flavorTags={cocktail.flavorTags}
                         />
                     </div>
                 ))}
