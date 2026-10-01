@@ -27,7 +27,7 @@ function App() {
             <Route path="/category/:categoryName" element={<CategoryPage />} />
             <Route path="/cocktails/:cocktailId" element={<CocktailDetailPage />} />
             <Route path="/recommendations" element={<div className="max-w-3xl"><Recommendations /></div>} />
-            <Route path="/cookbook" element={<div className="max-w-3xl"><Cookbook /></div>} />
+            <Route path="/cookbook" element={<Cookbook />} />
             <Route path="/what-can-i-make" element={<div className="max-w-3xl"><WhatCanIMake /></div>} />
             <Route path="/preferences" element={<div className="max-w-3xl"><PreferencesEditor /></div>} />
             <Route path="/account" element={<AccountSettingsPage />} />

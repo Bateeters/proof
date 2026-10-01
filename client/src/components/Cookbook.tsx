@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfileContext";
+import { CocktailCard } from "./CocktailCard";
 import type { CookbookEntry } from "../types/Cookbook";
 
 export function Cookbook() {
@@ -46,7 +47,7 @@ export function Cookbook() {
         : entries;
 
     return (
-        <div>
+        <div className="w-full">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
                 <div>
                     <h1 className="text-3xl mb-1">Drink Menu</h1>
@@ -66,22 +67,33 @@ export function Cookbook() {
             ) : filteredEntries.length === 0 ? (
                 <p className="text-ink-600 italic">No saved drinks match that search.</p>
             ) : (
-                <ul className="flex flex-col gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                     {filteredEntries.map(entry => (
-                        <li
-                            key={entry.cocktailId}
-                            className="flex flex-wrap items-center justify-between gap-3 bg-white border border-marble-300 rounded-lg px-4 py-3"
-                        >
-                            <div>
-                                <p className="font-medium text-ink-900">
-                                    {entry.cocktailName} <span className="text-ink-600 font-normal">| {entry.cocktailCategory}</span>
-                                </p>
-                                {entry.notes && <p className="text-sm text-ink-600">{entry.notes}</p>}
-                            </div>
-                            <button className="btn-danger" onClick={() => handleRemove(entry.cocktailId)}>Remove</button>
-                        </li>
+                        <div key={entry.cocktailId} className="relative">
+                            <CocktailCard
+                                id={entry.cocktailId}
+                                name={entry.cocktailName}
+                                category={entry.cocktailCategory}
+                                imageUrl={entry.cocktailImageUrl}
+                            />
+                            {/* Sibling of the card's own <Link>, not a child of
+                                it, so clicking Remove never also triggers the
+                                card's navigation -- the button simply sits on
+                                top of it via absolute positioning + z-index. */}
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleRemove(entry.cocktailId);
+                                }}
+                                className="absolute top-2 right-2 z-10 rounded-full bg-white/90 hover:bg-white
+                                    text-red-700 text-xs font-medium px-2.5 py-1 shadow"
+                            >
+                                Remove
+                            </button>
+                        </div>
                     ))}
-                </ul>
+                </div>
             )}
         </div>
     );
