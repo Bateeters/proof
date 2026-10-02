@@ -3,7 +3,8 @@ import { useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCocktailFilters } from "../hooks/useCocktailFilters";
 import { CocktailCard } from "../components/CocktailCard";
-import { FilterChipRow } from "../components/FilterChipRow";
+import { FilterDropdown } from "../components/FilterDropdown";
+import { ActiveFilterTray } from "../components/ActiveFilterTray";
 import type { CocktailSummary } from "../types/Cocktail";
 
 export function CategoryPage() {
@@ -12,9 +13,10 @@ export function CategoryPage() {
     const [cocktails, setCocktails] = useState<CocktailSummary[]>([]);
     const [search, setSearch] = useState('');
     const {
-        seasonOptions, flavorTagOptions,
-        selectedSeasons, selectedFlavorTags,
-        toggleSeason, toggleFlavorTag,
+        seasonOptions, flavorTagOptions, spiritOptions,
+        selectedSeasons, selectedFlavorTags, selectedSpirits,
+        addSeason, addFlavorTag, addSpirit,
+        activeFilters, removeFilter,
     } = useCocktailFilters();
 
     useEffect(() => {
@@ -24,13 +26,14 @@ export function CategoryPage() {
         if (search) params.append('search', search);
         if (selectedSeasons.length > 0) params.append('seasons', selectedSeasons.join(','));
         if (selectedFlavorTags.length > 0) params.append('flavorTags', selectedFlavorTags.join(','));
+        if (selectedSpirits.length > 0) params.append('spirits', selectedSpirits.join(','));
 
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails?${params}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
             .then(setCocktails);
-    }, [token, categoryName, search, selectedSeasons, selectedFlavorTags]);
+    }, [token, categoryName, search, selectedSeasons, selectedFlavorTags, selectedSpirits]);
 
     return (
         <div>
@@ -50,19 +53,13 @@ export function CategoryPage() {
                 />
             </div>
 
-            <div className="flex flex-col gap-2 mb-6">
-                <FilterChipRow
-                    label="Season"
-                    options={seasonOptions}
-                    selected={selectedSeasons}
-                    onToggle={toggleSeason}
-                />
-                <FilterChipRow
-                    label="Flavor"
-                    options={flavorTagOptions}
-                    selected={selectedFlavorTags}
-                    onToggle={toggleFlavorTag}
-                />
+            <div className="flex flex-col gap-3 mb-6">
+                <div className="flex flex-wrap gap-3">
+                    <FilterDropdown label="Season" options={seasonOptions} onSelect={addSeason} />
+                    <FilterDropdown label="Flavor" options={flavorTagOptions} onSelect={addFlavorTag} />
+                    <FilterDropdown label="Liquor Base" options={spiritOptions} onSelect={addSpirit} />
+                </div>
+                <ActiveFilterTray filters={activeFilters} onRemove={removeFilter} />
             </div>
 
             {cocktails.length === 0 ? (

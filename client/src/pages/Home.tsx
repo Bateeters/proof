@@ -4,7 +4,8 @@ import { useProfiles } from "../context/ProfileContext";
 import { useCocktailFilters } from "../hooks/useCocktailFilters";
 import { CategoryRail } from "../components/CategoryRail";
 import { CocktailCard } from "../components/CocktailCard";
-import { FilterChipRow } from "../components/FilterChipRow";
+import { FilterDropdown } from "../components/FilterDropdown";
+import { ActiveFilterTray } from "../components/ActiveFilterTray";
 import type { CategoryPreview, CocktailSummary } from "../types/Cocktail";
 import type { RankedCocktail } from "../types/Preferences";
 
@@ -16,9 +17,10 @@ export function Home() {
     const [search, setSearch] = useState('');
     const [searchResults, setSearchResults] = useState<CocktailSummary[]>([]);
     const {
-        seasonOptions, flavorTagOptions,
-        selectedSeasons, selectedFlavorTags,
-        toggleSeason, toggleFlavorTag,
+        seasonOptions, flavorTagOptions, spiritOptions,
+        selectedSeasons, selectedFlavorTags, selectedSpirits,
+        addSeason, addFlavorTag, addSpirit,
+        activeFilters, removeFilter,
     } = useCocktailFilters();
 
     useEffect(() => {
@@ -44,10 +46,10 @@ export function Home() {
             .then((data: RankedCocktail[]) => setRecommended(data.slice(0, 10)));
     }, [token, activeProfile]);
 
-    // isSearching now covers both typed text AND an active filter chip --
-    // toggling "Summer" with an empty search box should still swap the
-    // rails for a filtered grid, not require typing something first.
-    const isSearching = search.trim().length > 0 || selectedSeasons.length > 0 || selectedFlavorTags.length > 0;
+    // isSearching now covers both typed text AND an active filter -- picking
+    // "Summer" with an empty search box should still swap the rails for a
+    // filtered grid, not require typing something first.
+    const isSearching = search.trim().length > 0 || activeFilters.length > 0;
 
     // Same live-as-you-type pattern as CategoryPage, just without a category
     // filter -- searches the whole synced catalog instead of one slice of it.
@@ -61,13 +63,14 @@ export function Home() {
         if (search.trim()) params.append('search', search.trim());
         if (selectedSeasons.length > 0) params.append('seasons', selectedSeasons.join(','));
         if (selectedFlavorTags.length > 0) params.append('flavorTags', selectedFlavorTags.join(','));
+        if (selectedSpirits.length > 0) params.append('spirits', selectedSpirits.join(','));
 
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails?${params}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
             .then(setSearchResults);
-    }, [token, search, isSearching, selectedSeasons, selectedFlavorTags]);
+    }, [token, search, isSearching, selectedSeasons, selectedFlavorTags, selectedSpirits]);
 
     return (
         <div>
@@ -90,19 +93,13 @@ export function Home() {
                 />
             </div>
 
-            <div className="flex flex-col gap-2 mb-10">
-                <FilterChipRow
-                    label="Season"
-                    options={seasonOptions}
-                    selected={selectedSeasons}
-                    onToggle={toggleSeason}
-                />
-                <FilterChipRow
-                    label="Flavor"
-                    options={flavorTagOptions}
-                    selected={selectedFlavorTags}
-                    onToggle={toggleFlavorTag}
-                />
+            <div className="flex flex-col gap-3 mb-10">
+                <div className="flex flex-wrap gap-3">
+                    <FilterDropdown label="Season" options={seasonOptions} onSelect={addSeason} />
+                    <FilterDropdown label="Flavor" options={flavorTagOptions} onSelect={addFlavorTag} />
+                    <FilterDropdown label="Liquor Base" options={spiritOptions} onSelect={addSpirit} />
+                </div>
+                <ActiveFilterTray filters={activeFilters} onRemove={removeFilter} />
             </div>
 
             {isSearching ? (
