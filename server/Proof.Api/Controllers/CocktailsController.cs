@@ -27,8 +27,12 @@ public class CocktailsController : ControllerBase
     public async Task<IActionResult> GetCocktails(
         [FromQuery] string? search,
         [FromQuery] string? category,
-        [FromQuery] Season? season)
-
+        // Comma-separated, same parsing style as WhatCanIMake's ingredients
+        // param. Multi-select: a cocktail matches if it has ANY of the
+        // selected seasons / ANY of the selected flavor tags (the two lists
+        // combine with AND — e.g. "Summer or Winter" AND "Sweet or Citrus").
+        [FromQuery] string? seasons,
+        [FromQuery] string? flavorTags)
     {
         var query = _context.Cocktails.AsQueryable();
 
@@ -42,9 +46,25 @@ public class CocktailsController : ControllerBase
             query = query.Where(c => c.Category.ToLower() == category.ToLower());
         }
 
-        if (season.HasValue)
+        var parsedSeasons = (seasons ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => Enum.TryParse<Season>(s, ignoreCase: true, out var parsed) ? parsed : (Season?)null)
+            .Where(s => s.HasValue)
+            .Select(s => s!.Value)
+            .ToList();
+
+        if (parsedSeasons.Count > 0)
         {
-            query = query.Where(c => c.CocktailSeasons.Any(cs => cs.Season == season.Value));
+            query = query.Where(c => c.CocktailSeasons.Any(cs => parsedSeasons.Contains(cs.Season)));
+        }
+
+        var parsedFlavorTags = (flavorTags ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .ToList();
+
+        if (parsedFlavorTags.Count > 0)
+        {
+            query = query.Where(c => c.CocktailFlavorTags.Any(cft => parsedFlavorTags.Contains(cft.FlavorTag.Name)));
         }
 
         var cocktails = await query
