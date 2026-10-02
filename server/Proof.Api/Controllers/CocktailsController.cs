@@ -29,10 +29,12 @@ public class CocktailsController : ControllerBase
         [FromQuery] string? category,
         // Comma-separated, same parsing style as WhatCanIMake's ingredients
         // param. Multi-select: a cocktail matches if it has ANY of the
-        // selected seasons / ANY of the selected flavor tags (the two lists
-        // combine with AND — e.g. "Summer or Winter" AND "Sweet or Citrus").
+        // selected values within one filter, combined with AND across the
+        // three filters — e.g. "Summer or Winter" AND "Sweet or Citrus" AND
+        // "Rum or Vodka".
         [FromQuery] string? seasons,
-        [FromQuery] string? flavorTags)
+        [FromQuery] string? flavorTags,
+        [FromQuery] string? spirits)
     {
         var query = _context.Cocktails.AsQueryable();
 
@@ -65,6 +67,16 @@ public class CocktailsController : ControllerBase
         if (parsedFlavorTags.Count > 0)
         {
             query = query.Where(c => c.CocktailFlavorTags.Any(cft => parsedFlavorTags.Contains(cft.FlavorTag.Name)));
+        }
+
+        var parsedSpirits = (spirits ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .ToList();
+
+        if (parsedSpirits.Count > 0)
+        {
+            query = query.Where(c => c.CocktailIngredients.Any(ci =>
+                ci.Ingredient.SpiritId != null && parsedSpirits.Contains(ci.Ingredient.Spirit!.Name)));
         }
 
         var cocktails = await query
