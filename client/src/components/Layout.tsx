@@ -24,7 +24,14 @@ export function Layout() {
             <Sidebar />
 
             <div className="flex-1 min-w-0">
-                <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gold-600/30 bg-gold-600 px-8 py-4 sticky top-0 z-10">
+                {/* z-20, not z-10 -- the card heart buttons also use z-10
+                    for their own local stacking, and since neither this
+                    header nor those cards' ancestors establish an isolated
+                    stacking context, equal z-index ties resolve by DOM
+                    order. main (the cards) comes after header in the DOM,
+                    so without a higher z-index here, scrolled-up cards were
+                    painting on top of the sticky header instead of under it. */}
+                <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gold-600/30 bg-gold-600 px-8 py-4 sticky top-0 z-20">
                     <div className="flex items-center gap-3">
                         <Link to="/cookbook" className={lightButtonClass}>Your Drink Menu</Link>
 
