@@ -42,6 +42,7 @@ builder.Services.AddScoped<IngredientSpiritSyncService>();
 builder.Services.AddScoped<TasteRankingService>();
 builder.Services.AddScoped<IngredientSubstitutionSeedService>();
 builder.Services.AddScoped<WhatCanIMakeService>();
+builder.Services.AddScoped<CocktailSimilarityService>();
 builder.Services.AddHttpClient<CocktailDbSyncService>(client =>
 {
     client.BaseAddress = new Uri("https://www.thecocktaildb.com/api/json/v1/1/");

@@ -3,13 +3,15 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfileContext";
 import { SubstitutionSuggester } from "../components/SubstitutionSuggester";
-import type { CocktailDetail } from "../types/Cocktail";
+import { CocktailCard } from "../components/CocktailCard";
+import type { CocktailDetail, CocktailSummary } from "../types/Cocktail";
 
 export function CocktailDetailPage() {
     const { cocktailId } = useParams<{ cocktailId: string }>();
     const { token } = useAuth();
     const { activeProfile } = useProfiles();
     const [cocktail, setCocktail] = useState<CocktailDetail | null>(null);
+    const [similar, setSimilar] = useState<CocktailSummary[]>([]);
     const [saveMessage, setSaveMessage] = useState('');
 
     useEffect(() => {
@@ -20,6 +22,12 @@ export function CocktailDetailPage() {
         })
             .then(response => response.json())
             .then(setCocktail);
+
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails/${cocktailId}/similar`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(response => response.json())
+            .then(setSimilar);
     }, [token, cocktailId]);
 
     async function handleSaveToDrinkMenu() {
@@ -42,64 +50,88 @@ export function CocktailDetailPage() {
     }
 
     return (
-        <div className="max-w-3xl">
-            <Link to={`/category/${encodeURIComponent(cocktail.category)}`} className="text-sm text-gold-600 hover:text-gold-500">
-                &larr; Back to {cocktail.category}
-            </Link>
+        <div>
+            <div className="max-w-3xl">
+                <Link to={`/category/${encodeURIComponent(cocktail.category)}`} className="text-sm text-gold-600 hover:text-gold-500">
+                    &larr; Back to {cocktail.category}
+                </Link>
 
-            <div className="mt-4 grid md:grid-cols-[280px_1fr] gap-8">
-                {cocktail.imageUrl && (
-                    <img
-                        src={cocktail.imageUrl}
-                        alt={cocktail.name}
-                        className="w-full aspect-square object-cover rounded-lg border border-marble-300"
-                    />
-                )}
+                <div className="mt-4 grid md:grid-cols-[280px_1fr] gap-8">
+                    {cocktail.imageUrl && (
+                        <img
+                            src={cocktail.imageUrl}
+                            alt={cocktail.name}
+                            className="w-full aspect-square object-cover rounded-lg border border-marble-300"
+                        />
+                    )}
 
-                <div>
-                    <h1 className="text-3xl mb-1">{cocktail.name}</h1>
-                    <p className="text-ink-600 mb-3">{cocktail.category} &middot; {cocktail.glass}</p>
+                    <div>
+                        <h1 className="text-3xl mb-1">{cocktail.name}</h1>
+                        <p className="text-ink-600 mb-3">{cocktail.category} &middot; {cocktail.glass}</p>
 
-                    {cocktail.flavorTags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-6">
-                            {cocktail.flavorTags.map(tag => (
-                                <span
-                                    key={tag}
-                                    className="rounded-full bg-gold-400/15 text-gold-600 text-xs font-medium px-3 py-1"
-                                >
-                                    {tag}
-                                </span>
+                        {cocktail.flavorTags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-6">
+                                {cocktail.flavorTags.map(tag => (
+                                    <span
+                                        key={tag}
+                                        className="rounded-full bg-gold-400/15 text-gold-600 text-xs font-medium px-3 py-1"
+                                    >
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
+                        <h2 className="text-base mb-2">Ingredients</h2>
+                        <ul className="flex flex-col gap-2 mb-6">
+                            {cocktail.ingredients.map((ingredient, index) => (
+                                <li key={index} className="flex flex-wrap items-center gap-2 text-sm border-b border-marble-200 pb-2">
+                                    <span className="text-ink-800">
+                                        {ingredient.measure} {ingredient.ingredientName}
+                                    </span>
+                                    <SubstitutionSuggester
+                                        cocktailId={cocktail.id}
+                                        ingredientId={ingredient.ingredientId}
+                                        ingredientName={ingredient.ingredientName}
+                                    />
+                                </li>
                             ))}
-                        </div>
-                    )}
+                        </ul>
 
-                    <h2 className="text-base mb-2">Ingredients</h2>
-                    <ul className="flex flex-col gap-2 mb-6">
-                        {cocktail.ingredients.map((ingredient, index) => (
-                            <li key={index} className="flex flex-wrap items-center gap-2 text-sm border-b border-marble-200 pb-2">
-                                <span className="text-ink-800">
-                                    {ingredient.measure} {ingredient.ingredientName}
-                                </span>
-                                <SubstitutionSuggester
-                                    cocktailId={cocktail.id}
-                                    ingredientId={ingredient.ingredientId}
-                                    ingredientName={ingredient.ingredientName}
-                                />
-                            </li>
-                        ))}
-                    </ul>
+                        <h2 className="text-base mb-2">Instructions</h2>
+                        <p className="text-ink-700 mb-6">{cocktail.instructions}</p>
 
-                    <h2 className="text-base mb-2">Instructions</h2>
-                    <p className="text-ink-700 mb-6">{cocktail.instructions}</p>
-
-                    {activeProfile && (
-                        <div className="flex items-center gap-3">
-                            <button className="btn-primary" onClick={handleSaveToDrinkMenu}>Save To Drink Menu</button>
-                            {saveMessage && <span className="text-sm text-gold-600">{saveMessage}</span>}
-                        </div>
-                    )}
+                        {activeProfile && (
+                            <div className="flex items-center gap-3">
+                                <button className="btn-primary" onClick={handleSaveToDrinkMenu}>Save To Drink Menu</button>
+                                {saveMessage && <span className="text-sm text-gold-600">{saveMessage}</span>}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
+
+            {similar.length > 0 && (
+                // Unconstrained by the max-w-3xl reading column above --
+                // spans the full page width so 4 cards sit in one row with
+                // no horizontal scroll needed, same grid Home/CategoryPage
+                // use for their search results.
+                <div className="mt-12">
+                    <h2 className="text-lg mb-3">More Like This</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {similar.map(similarCocktail => (
+                            <CocktailCard
+                                key={similarCocktail.id}
+                                id={similarCocktail.id}
+                                name={similarCocktail.name}
+                                category={similarCocktail.category}
+                                imageUrl={similarCocktail.imageUrl}
+                                flavorTags={similarCocktail.flavorTags}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

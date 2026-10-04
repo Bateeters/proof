@@ -18,15 +18,18 @@ public class CocktailsController : ControllerBase
     private readonly ProofDbContext _context;
     private readonly WhatCanIMakeService _whatCanIMakeService;
     private readonly TasteRankingService _tasteRankingService;
+    private readonly CocktailSimilarityService _similarityService;
 
     public CocktailsController(
         ProofDbContext context,
         WhatCanIMakeService whatCanIMakeService,
-        TasteRankingService tasteRankingService)
+        TasteRankingService tasteRankingService,
+        CocktailSimilarityService similarityService)
     {
         _context = context;
         _whatCanIMakeService = whatCanIMakeService;
         _tasteRankingService = tasteRankingService;
+        _similarityService = similarityService;
     }
 
     private Guid GetAccountId()
@@ -123,6 +126,19 @@ public class CocktailsController : ControllerBase
         return Ok(cocktailDetailDto);
     }
 
+    [HttpGet("{id}/similar")]
+    public async Task<IActionResult> GetSimilarCocktails(Guid id, [FromQuery] int take = 4)
+    {
+        var similar = await _similarityService.GetSimilarCocktailsAsync(id, take);
+
+        if (similar == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(similar);
+    }
+
     [HttpGet("categories")]
     public async Task<IActionResult> GetCategories()
     {
@@ -136,7 +152,7 @@ public class CocktailsController : ControllerBase
     }
 
     [HttpGet("browse")]
-    public async Task<IActionResult> Browse([FromQuery] int perCategory = 4, [FromQuery] Guid? profileId = null)
+    public async Task<IActionResult> Browse([FromQuery] int perCategory = 5, [FromQuery] Guid? profileId = null)
     {
         if (profileId.HasValue && !await IsOwnedByCallerAsync(profileId.Value))
         {
