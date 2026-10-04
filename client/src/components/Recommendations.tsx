@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfileContext";
-import type { RankedCocktail } from "../types/Preferences";
+import type { CocktailSummary } from "../types/Cocktail";
 
 export function Recommendations() {
     const { token } = useAuth();
     const { activeProfile } = useProfiles();
-    const [ranked, setRanked] = useState<RankedCocktail[]>([]);
+    const [ranked, setRanked] = useState<CocktailSummary[]>([]);
     const [loaded, setLoaded] = useState(false);
 
     async function loadRecommendations() {

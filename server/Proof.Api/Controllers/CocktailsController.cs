@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,32 @@ public class CocktailsController : ControllerBase
 {
     private readonly ProofDbContext _context;
     private readonly WhatCanIMakeService _whatCanIMakeService;
+    private readonly TasteRankingService _tasteRankingService;
 
-    public CocktailsController(ProofDbContext context, WhatCanIMakeService whatCanIMakeService)
+    public CocktailsController(
+        ProofDbContext context,
+        WhatCanIMakeService whatCanIMakeService,
+        TasteRankingService tasteRankingService)
     {
         _context = context;
         _whatCanIMakeService = whatCanIMakeService;
+        _tasteRankingService = tasteRankingService;
+    }
+
+    private Guid GetAccountId()
+    {
+        var accountIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value;
+        return Guid.Parse(accountIdClaim);
+    }
+
+    // profileId is client-supplied, so it's verified against the caller's
+    // own account before it's trusted for scoring -- otherwise one account
+    // could pull another profile's taste/allergen data indirectly through
+    // its effect on match scores and exclusions.
+    private async Task<bool> IsOwnedByCallerAsync(Guid profileId)
+    {
+        var accountId = GetAccountId();
+        return await _context.Profiles.AnyAsync(p => p.Id == profileId && p.AccountId == accountId);
     }
 
     [HttpGet]
@@ -34,18 +56,15 @@ public class CocktailsController : ControllerBase
         // "Rum or Vodka".
         [FromQuery] string? seasons,
         [FromQuery] string? flavorTags,
-        [FromQuery] string? spirits)
+        [FromQuery] string? spirits,
+        // Optional: when given, results are scored and sorted by match
+        // score (highest first, alphabetical tiebreak) for this profile
+        // instead of being left in plain alphabetical order.
+        [FromQuery] Guid? profileId)
     {
-        var query = _context.Cocktails.AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(search))
+        if (profileId.HasValue && !await IsOwnedByCallerAsync(profileId.Value))
         {
-            query = query.Where(c => c.Name.ToLower().Contains(search.ToLower()));
-        }
-
-        if (!string.IsNullOrWhiteSpace(category))
-        {
-            query = query.Where(c => c.Category.ToLower() == category.ToLower());
+            return NotFound();
         }
 
         var parsedSeasons = (seasons ?? "")
@@ -55,41 +74,16 @@ public class CocktailsController : ControllerBase
             .Select(s => s!.Value)
             .ToList();
 
-        if (parsedSeasons.Count > 0)
-        {
-            query = query.Where(c => c.CocktailSeasons.Any(cs => parsedSeasons.Contains(cs.Season)));
-        }
-
         var parsedFlavorTags = (flavorTags ?? "")
             .Split(',', StringSplitOptions.RemoveEmptyEntries)
             .ToList();
-
-        if (parsedFlavorTags.Count > 0)
-        {
-            query = query.Where(c => c.CocktailFlavorTags.Any(cft => parsedFlavorTags.Contains(cft.FlavorTag.Name)));
-        }
 
         var parsedSpirits = (spirits ?? "")
             .Split(',', StringSplitOptions.RemoveEmptyEntries)
             .ToList();
 
-        if (parsedSpirits.Count > 0)
-        {
-            query = query.Where(c => c.CocktailIngredients.Any(ci =>
-                ci.Ingredient.SpiritId != null && parsedSpirits.Contains(ci.Ingredient.Spirit!.Name)));
-        }
-
-        var cocktails = await query
-            .Select(c => new CocktailSummaryDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Category = c.Category,
-                Glass = c.Glass,
-                ImageUrl = c.ImageUrl,
-                FlavorTags = c.CocktailFlavorTags.Select(cft => cft.FlavorTag.Name).ToList()
-            })
-            .ToListAsync();
+        var cocktails = await _tasteRankingService.RankCocktailsForProfileAsync(
+            profileId, search, category, parsedSeasons, parsedFlavorTags, parsedSpirits);
 
         return Ok(cocktails);
     }
@@ -142,8 +136,13 @@ public class CocktailsController : ControllerBase
     }
 
     [HttpGet("browse")]
-    public async Task<IActionResult> Browse([FromQuery] int perCategory = 4)
+    public async Task<IActionResult> Browse([FromQuery] int perCategory = 4, [FromQuery] Guid? profileId = null)
     {
+        if (profileId.HasValue && !await IsOwnedByCallerAsync(profileId.Value))
+        {
+            return NotFound();
+        }
+
         var categories = await _context.Cocktails
             .Select(c => c.Category)
             .Distinct()
@@ -154,22 +153,12 @@ public class CocktailsController : ControllerBase
 
         foreach (var category in categories)
         {
-            var cocktails = await _context.Cocktails
-                .Where(c => c.Category == category)
-                .OrderBy(c => c.Name)
-                .Take(perCategory)
-                .Select(c => new CocktailSummaryDto
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Category = c.Category,
-                    Glass = c.Glass,
-                    ImageUrl = c.ImageUrl,
-                    FlavorTags = c.CocktailFlavorTags.Select(cft => cft.FlavorTag.Name).ToList()
-                })
-                .ToListAsync();
+            // Ranked per-category first, then truncated -- taking the top
+            // N by name and only sorting afterward would show the top 4
+            // alphabetically, not the top 4 by match score.
+            var ranked = await _tasteRankingService.RankCocktailsForProfileAsync(profileId, category: category);
 
-            previews.Add(new CategoryPreviewDto { Category = category, Cocktails = cocktails });
+            previews.Add(new CategoryPreviewDto { Category = category, Cocktails = ranked.Take(perCategory).ToList() });
         }
 
         return Ok(previews);

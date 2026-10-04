@@ -17,13 +17,3 @@ export type ProfilePreferences = {
     flavorPreferences: FlavorPreference[];
     allergens: string[];
 }
-
-export type RankedCocktail = {
-    id: string;
-    name: string;
-    category: string;
-    glass: string;
-    imageUrl: string | null;
-    flavorTags: string[];
-    matchScore: number;
-}

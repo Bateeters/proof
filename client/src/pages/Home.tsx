@@ -7,13 +7,12 @@ import { CocktailCard } from "../components/CocktailCard";
 import { FilterDropdown } from "../components/FilterDropdown";
 import { ActiveFilterTray } from "../components/ActiveFilterTray";
 import type { CategoryPreview, CocktailSummary } from "../types/Cocktail";
-import type { RankedCocktail } from "../types/Preferences";
 
 export function Home() {
     const { token } = useAuth();
     const { activeProfile } = useProfiles();
     const [previews, setPreviews] = useState<CategoryPreview[]>([]);
-    const [recommended, setRecommended] = useState<RankedCocktail[]>([]);
+    const [recommended, setRecommended] = useState<CocktailSummary[]>([]);
     const [search, setSearch] = useState('');
     const [searchResults, setSearchResults] = useState<CocktailSummary[]>([]);
     const {
@@ -26,12 +25,18 @@ export function Home() {
     useEffect(() => {
         if (!token) return;
 
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails/browse`, {
+        // profileId lets the backend score and sort each category's rail by
+        // match score instead of leaving it alphabetical -- omitted when
+        // there's no active profile yet, which falls back to alphabetical.
+        const params = new URLSearchParams();
+        if (activeProfile) params.append('profileId', activeProfile.id);
+
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails/browse?${params}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
             .then(setPreviews);
-    }, [token]);
+    }, [token, activeProfile]);
 
     useEffect(() => {
         if (!token || !activeProfile) {
@@ -43,7 +48,7 @@ export function Home() {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
-            .then((data: RankedCocktail[]) => setRecommended(data.slice(0, 10)));
+            .then((data: CocktailSummary[]) => setRecommended(data.slice(0, 10)));
     }, [token, activeProfile]);
 
     // isSearching now covers both typed text AND an active filter -- picking
@@ -64,13 +69,14 @@ export function Home() {
         if (selectedSeasons.length > 0) params.append('seasons', selectedSeasons.join(','));
         if (selectedFlavorTags.length > 0) params.append('flavorTags', selectedFlavorTags.join(','));
         if (selectedSpirits.length > 0) params.append('spirits', selectedSpirits.join(','));
+        if (activeProfile) params.append('profileId', activeProfile.id);
 
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails?${params}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
             .then(setSearchResults);
-    }, [token, search, isSearching, selectedSeasons, selectedFlavorTags, selectedSpirits]);
+    }, [token, search, isSearching, selectedSeasons, selectedFlavorTags, selectedSpirits, activeProfile]);
 
     return (
         <div>

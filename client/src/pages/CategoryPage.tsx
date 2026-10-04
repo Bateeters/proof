@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useProfiles } from "../context/ProfileContext";
 import { useCocktailFilters } from "../hooks/useCocktailFilters";
 import { CocktailCard } from "../components/CocktailCard";
 import { FilterDropdown } from "../components/FilterDropdown";
@@ -10,6 +11,7 @@ import type { CocktailSummary } from "../types/Cocktail";
 export function CategoryPage() {
     const { categoryName } = useParams<{ categoryName: string }>();
     const { token } = useAuth();
+    const { activeProfile } = useProfiles();
     const [cocktails, setCocktails] = useState<CocktailSummary[]>([]);
     const [search, setSearch] = useState('');
     const {
@@ -27,13 +29,14 @@ export function CategoryPage() {
         if (selectedSeasons.length > 0) params.append('seasons', selectedSeasons.join(','));
         if (selectedFlavorTags.length > 0) params.append('flavorTags', selectedFlavorTags.join(','));
         if (selectedSpirits.length > 0) params.append('spirits', selectedSpirits.join(','));
+        if (activeProfile) params.append('profileId', activeProfile.id);
 
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails?${params}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
             .then(setCocktails);
-    }, [token, categoryName, search, selectedSeasons, selectedFlavorTags, selectedSpirits]);
+    }, [token, categoryName, search, selectedSeasons, selectedFlavorTags, selectedSpirits, activeProfile]);
 
     return (
         <div>
