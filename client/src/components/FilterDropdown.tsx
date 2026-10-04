@@ -10,8 +10,11 @@ type Props = {
 // control is always ready to add another value from the same facet.
 export function FilterDropdown({ label, options, onSelect }: Props) {
     return (
+        // field-input is w-full for real form fields -- overridden here so
+        // the three dropdowns sit inline in one row (parent uses
+        // justify-between) instead of each claiming the full row width.
         <select
-            className="field-input"
+            className="field-input w-[32%]"
             value=""
             onChange={e => {
                 const value = e.target.value;

@@ -56,8 +56,8 @@ export function CategoryPage() {
                 />
             </div>
 
-            <div className="flex flex-col gap-3 mb-6">
-                <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-3 pb-6 mb-6 border-b border-gold-400/40">
+                <div className="flex flex-wrap justify-between gap-y-3">
                     <FilterDropdown label="Season" options={seasonOptions} onSelect={addSeason} />
                     <FilterDropdown label="Flavor" options={flavorTagOptions} onSelect={addFlavorTag} />
                     <FilterDropdown label="Liquor Base" options={spiritOptions} onSelect={addSpirit} />

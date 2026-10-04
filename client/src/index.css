@@ -23,17 +23,16 @@
 body {
   @apply text-ink-700 font-sans antialiased;
   background-color: var(--color-marble-50);
-  /* repeating-linear-gradient veins (the previous approach) are perfectly
-     regular, so they read as a technical grid, not stone. Real marble
-     veining is organic/irregular — an SVG feTurbulence filter (fractal
-     noise, desaturated to grayscale) gives genuine organic grain, layered
-     under a couple of very soft radial "blotches" for large-scale cloudy
-     variation. Both still just white/off-white/gray, low opacity. */
+  /* Neither a repeating-linear-gradient (reads as a technical grid) nor an
+     SVG feTurbulence noise filter (reads as grain, not stone) could
+     credibly fake real marble's branching veins -- replaced both with an
+     actual Calacatta-style white/gold-veined marble photo (CC0, royalty-free,
+     sourced from sharetextures.com, saved locally rather than hotlinked per
+     their terms). A soft white wash sits on top of the photo so it stays a
+     quiet backdrop behind page content instead of competing with it. */
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='marble-noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009 0.02' numOctaves='5' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23marble-noise)' opacity='0.5'/%3E%3C/svg%3E"),
-    radial-gradient(circle at 15% 15%, rgba(120, 118, 112, 0.10), transparent 45%),
-    radial-gradient(circle at 85% 10%, rgba(110, 108, 102, 0.08), transparent 42%),
-    radial-gradient(circle at 55% 90%, rgba(130, 128, 120, 0.09), transparent 48%);
+    linear-gradient(rgba(253, 252, 250, 0.72), rgba(253, 252, 250, 0.72)),
+    url("./assets/marble-gold-bg.webp");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -48,54 +47,71 @@ h1, h2, h3, h4 {
   @apply bg-gold-300/40;
 }
 
-/* Shared form/button primitives -- reused across every form in the app so
-   the visual language stays consistent without retyping long utility
-   strings in each component. */
+/* Shared form/button/scrollbar primitives -- reused across every form and
+   scroll region in the app so the visual language stays consistent without
+   retyping long utility strings in each component. Wrapped in @layer
+   components so these sit below Tailwind's utilities layer in the cascade
+   -- written as plain (unlayered) CSS, they'd beat every utility class
+   regardless of source order (unlayered styles always win over layered
+   ones), making it impossible to override e.g. field-input's w-full from a
+   call site. */
+@layer components {
+  .field-label {
+    @apply block text-xs font-medium tracking-wide uppercase text-ink-600 mb-1;
+  }
 
-.field-label {
-  @apply block text-xs font-medium tracking-wide uppercase text-ink-600 mb-1;
-}
+  .field-input {
+    @apply w-full rounded-md border border-marble-300 bg-white px-3 py-2 text-ink-800
+      focus:outline-none focus:ring-2 focus:ring-gold-400/50 focus:border-gold-400;
+  }
 
-.field-input {
-  @apply w-full rounded-md border border-marble-300 bg-white px-3 py-2 text-ink-800
-    focus:outline-none focus:ring-2 focus:ring-gold-400/50 focus:border-gold-400;
-}
+  .btn-primary, .btn-secondary, .btn-danger {
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium
+      transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
 
-.btn-primary, .btn-secondary, .btn-danger {
-  @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium
-    transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
-}
+  .btn-primary {
+    @apply bg-ink-900 text-marble-50 hover:bg-gold-600;
+  }
 
-.btn-primary {
-  @apply bg-ink-900 text-marble-50 hover:bg-gold-600;
-}
+  .btn-secondary {
+    @apply bg-transparent border border-marble-300 text-ink-700 hover:border-gold-400;
+  }
 
-.btn-secondary {
-  @apply bg-transparent border border-marble-300 text-ink-700 hover:border-gold-400;
-}
+  .btn-danger {
+    @apply bg-transparent border border-red-300 text-red-700 hover:bg-red-50;
+  }
 
-.btn-danger {
-  @apply bg-transparent border border-red-300 text-red-700 hover:bg-red-50;
-}
+  /* Thin gold-tinted scrollbar for horizontal rails (light background) */
+  .rail-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+  .rail-scroll::-webkit-scrollbar-thumb {
+    @apply bg-gold-300/60 rounded-full;
+  }
+  .rail-scroll::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
 
-/* Thin gold-tinted scrollbar for horizontal rails (light background) */
-.rail-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-.rail-scroll::-webkit-scrollbar-thumb {
-  @apply bg-gold-300/60 rounded-full;
-}
-.rail-scroll::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
+  /* Fully hides the scrollbar while leaving the element scrollLeft-able --
+     used on a rail's real card row once a separate proxy strip (styled
+     with .rail-scroll above) takes over as the only visible scrollbar,
+     synced to this element's scroll position in CategoryRail. */
+  .rail-scroll-hidden {
+    scrollbar-width: none;
+  }
+  .rail-scroll-hidden::-webkit-scrollbar {
+    display: none;
+  }
 
-/* Thin scrollbar for the sidebar's internal scroll region (light background) */
-.sidebar-scroll::-webkit-scrollbar {
-  width: 5px;
-}
-.sidebar-scroll::-webkit-scrollbar-thumb {
-  @apply bg-ink-900/15 rounded-full;
-}
-.sidebar-scroll::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  /* Thin scrollbar for the sidebar's internal scroll region (light background) */
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 5px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    @apply bg-ink-900/15 rounded-full;
+  }
+  .sidebar-scroll::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
 }
