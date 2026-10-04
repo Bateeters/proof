@@ -50,6 +50,23 @@ public class CocktailDbSyncService
         return cocktailsAdded;
     }
 
+    // TheCocktailDB splits plain mixed drinks into "Ordinary Drink"
+    // separately from "Cocktail" -- a distinction that doesn't track any
+    // consistent rule in their own data (Screwdriver and Daiquiri land on
+    // opposite sides of it) and just reads as two near-identical rails in
+    // our UI. Brian's call, 2026-10-04: merge "Ordinary Drink" into
+    // "Cocktail" here so every future sync stays merged automatically,
+    // instead of normalizing it back out at every read site.
+    private static string NormalizeCategory(string? rawCategory)
+    {
+        if (string.IsNullOrWhiteSpace(rawCategory))
+        {
+            return "Uncategorized";
+        }
+
+        return rawCategory == "Ordinary Drink" ? "Cocktail" : rawCategory;
+    }
+
     private async Task<bool> AddCocktailIfNewAsync(CocktailDbDrink drink)
     {
         var alreadyExists = await _context.Cocktails
@@ -64,7 +81,7 @@ public class CocktailDbSyncService
         {
             ExternalId = drink.IdDrink,
             Name = drink.StrDrink,
-            Category = drink.StrCategory ?? "Uncategorized",
+            Category = NormalizeCategory(drink.StrCategory),
             Glass = drink.StrGlass ?? "Unspecified",
             Instructions = drink.StrInstructions ?? "",
             ImageUrl = drink.StrDrinkThumb

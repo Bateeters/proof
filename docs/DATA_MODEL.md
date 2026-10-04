@@ -92,7 +92,7 @@ Ingredient ↔ FlavorTag, many-to-many. E.g. "Angostura bitters" tags to `bitter
 | Id | PK |
 | ExternalId | TheCocktailDB id, nullable |
 | Name | |
-| Category | e.g. "Ordinary Drink", "Cocktail", "Punch" (from source data) |
+| Category | e.g. "Cocktail", "Shot", "Punch / Party Drink" (from source data, with one normalization — see below) |
 | Glass | |
 | Instructions | |
 | ImageUrl | |
@@ -179,4 +179,5 @@ Snapshots any substitutions applied *before* saving, so the cookbook entry refle
 - **Why `Sentiment` enums instead of separate Likes/Dislikes tables**: one table with a sentiment column is less schema duplication and makes "show me everything this profile has an opinion on" a single query. Trade-off: slightly less type-safety than separate tables, acceptable here.
 - **Why `FlavorTag` is shared between ingredients and profile preferences**: this shared vocabulary is *the* mechanism that makes taste-based ranking possible — we can score "does this cocktail's ingredient flavor tags overlap with what this profile prefers/avoids" directly in SQL/LINQ.
 - **Why `IsCustom` lives on `Cocktail` instead of a separate `CustomRecipe` table**: per the brief, we want the data model ready for custom recipes without building the UI yet. Reusing `Cocktail` means custom recipes automatically work with cookbook, substitution, and display logic for free — no parallel code path needed later.
+- **`Category` normalization, 2026-10-04**: TheCocktailDB splits plain mixed drinks into `"Ordinary Drink"` separately from `"Cocktail"`, a distinction that doesn't track any consistent rule in their own source data (a Screwdriver and a Daiquiri land on opposite sides of it) and just produced two near-identical rails in the UI. `CocktailDbSyncService.NormalizeCategory` now folds `"Ordinary Drink"` into `"Cocktail"` at sync time, so every future `sync-cocktails` run stays merged automatically; the 192 already-synced rows were updated once directly in the database to match (`UPDATE "Cocktails" SET "Category" = 'Cocktail' WHERE "Category" = 'Ordinary Drink'`).
 - **Why `CocktailSeason` is a join table, not a field on `Cocktail`**: decided with Brian in Phase 5 — TheCocktailDB has zero season data, so we assign it ourselves via a heuristic (category/ingredients/serving style). A cocktail can genuinely belong to multiple seasons (a Moscow Mule fits Spring and Summer; a warm spiced drink can fit Fall and Winter), so a single `Season` field would force an inaccurate either/or choice. The heuristic assigns a *set*, not a pick-one value.
