@@ -7,6 +7,8 @@ import { WhoIsDrinkingPage } from './pages/WhoIsDrinkingPage'
 import { Home } from './pages/Home'
 import { CategoryPage } from './pages/CategoryPage'
 import { CocktailDetailPage } from './pages/CocktailDetailPage'
+import { CocktailFormPage } from './pages/CocktailFormPage'
+import { MyCreationsPage } from './pages/MyCreationsPage'
 import { AccountSettingsPage } from './pages/AccountSettingsPage'
 import { PreferencesEditor } from './components/PreferencesEditor'
 import { Recommendations } from './components/Recommendations'
@@ -25,7 +27,10 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/category/:categoryName" element={<CategoryPage />} />
+            <Route path="/cocktails/new" element={<CocktailFormPage />} />
             <Route path="/cocktails/:cocktailId" element={<CocktailDetailPage />} />
+            <Route path="/cocktails/:cocktailId/edit" element={<CocktailFormPage />} />
+            <Route path="/my-creations" element={<MyCreationsPage />} />
             <Route path="/recommendations" element={<div className="max-w-3xl"><Recommendations /></div>} />
             <Route path="/cookbook" element={<Cookbook />} />
             <Route path="/what-can-i-make" element={<div className="max-w-3xl"><WhatCanIMake /></div>} />

@@ -1,3 +1,5 @@
+export type Visibility = 'Private' | 'Local' | 'Global';
+
 export type CocktailSummary = {
     id: string;
     name: string;
@@ -13,6 +15,11 @@ export type CocktailSummary = {
 export type CocktailDetail = CocktailSummary & {
     instructions: string;
     ingredients: CocktailIngredient[];
+    flavorTagIds: string[];
+    seasons: string[];
+    isCustom: boolean;
+    visibility: Visibility;
+    isOwnedByCaller: boolean;
 }
 
 export type CocktailIngredient = {

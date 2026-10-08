@@ -74,6 +74,7 @@ export function Sidebar() {
                         <nav className="flex flex-col gap-1">
                             <NavLink to="/recommendations" className={navLinkClass}>Recommended For You</NavLink>
                             <NavLink to="/what-can-i-make" className={navLinkClass}>What Can I Make?</NavLink>
+                            <NavLink to="/my-creations" className={navLinkClass}>My Creations</NavLink>
                             <NavLink to="/preferences" className={navLinkClass}>Taste Preferences</NavLink>
                         </nav>
                     </div>

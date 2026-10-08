@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useProfiles } from "../context/ProfileContext";
 import { SubstitutionSuggester } from "../components/SubstitutionSuggester";
@@ -8,6 +8,7 @@ import type { CocktailDetail, CocktailSummary } from "../types/Cocktail";
 
 export function CocktailDetailPage() {
     const { cocktailId } = useParams<{ cocktailId: string }>();
+    const navigate = useNavigate();
     const { token } = useAuth();
     const { activeProfile } = useProfiles();
     const [cocktail, setCocktail] = useState<CocktailDetail | null>(null);
@@ -17,18 +18,20 @@ export function CocktailDetailPage() {
     useEffect(() => {
         if (!token || !cocktailId) return;
 
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails/${cocktailId}`, {
+        const profileParam = activeProfile ? `?profileId=${activeProfile.id}` : '';
+
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails/${cocktailId}${profileParam}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
             .then(setCocktail);
 
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails/${cocktailId}/similar`, {
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/cocktails/${cocktailId}/similar${profileParam}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(response => response.json())
             .then(setSimilar);
-    }, [token, cocktailId]);
+    }, [token, cocktailId, activeProfile]);
 
     async function handleSaveToDrinkMenu() {
         if (!activeProfile || !cocktail) return;
@@ -43,6 +46,18 @@ export function CocktailDetailPage() {
         });
 
         setSaveMessage('Saved to your drink menu!');
+    }
+
+    async function handleDelete() {
+        if (!activeProfile || !cocktail) return;
+        if (!window.confirm(`Delete "${cocktail.name}"? Anyone who already saved it keeps access, but it won't be discoverable anymore.`)) return;
+
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/profiles/${activeProfile.id}/cocktails/${cocktail.id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+
+        navigate('/my-creations');
     }
 
     if (!cocktail) {
@@ -102,9 +117,16 @@ export function CocktailDetailPage() {
                         <p className="text-ink-700 mb-6">{cocktail.instructions}</p>
 
                         {activeProfile && (
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-wrap">
                                 <button className="btn-primary" onClick={handleSaveToDrinkMenu}>Save To Drink Menu</button>
                                 {saveMessage && <span className="text-sm text-gold-600">{saveMessage}</span>}
+
+                                {cocktail.isOwnedByCaller && (
+                                    <>
+                                        <Link to={`/cocktails/${cocktail.id}/edit`} className="btn-secondary">Edit</Link>
+                                        <button className="btn-danger" onClick={handleDelete}>Delete</button>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
