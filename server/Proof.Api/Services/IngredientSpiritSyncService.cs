@@ -17,7 +17,11 @@ public class IngredientSpiritSyncService
         var spiritIdsByName = await _context.Spirits
             .ToDictionaryAsync(s => s.Name, s => s.Id);
 
-        var ingredients = await _context.Ingredients.ToListAsync();
+        // IsManuallyTagged ingredients are excluded -- a user explicitly
+        // picked this ingredient's spirit by hand (custom-cocktail
+        // ingredient creation, when the heuristic found no match), and a
+        // bulk re-run shouldn't silently overwrite that correction.
+        var ingredients = await _context.Ingredients.Where(i => !i.IsManuallyTagged).ToListAsync();
 
         var ingredientsMatched = 0;
 

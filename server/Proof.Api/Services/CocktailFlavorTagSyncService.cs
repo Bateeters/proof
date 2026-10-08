@@ -15,7 +15,12 @@ public class CocktailFlavorTagSyncService
 
     public async Task<int> TagAllCocktailsAsync()
     {
+        // Custom cocktails are excluded -- their flavor tags are always
+        // user-confirmed (CocktailsController.SuggestTags pre-fills a
+        // multi-select the user can freely adjust before saving), so a
+        // wholesale re-tag here would silently overwrite that choice.
         var cocktailIds = await _context.Cocktails
+            .Where(c => !c.IsCustom)
             .Select(c => c.Id)
             .ToListAsync();
 
@@ -27,7 +32,13 @@ public class CocktailFlavorTagSyncService
             .Select(ift => new { ift.IngredientId, ift.FlavorTagId })
             .ToListAsync();
 
-        var existingCocktailTags = await _context.CocktailFlavorTags.ToListAsync();
+        // Scoped to the same non-custom cocktails -- a plain RemoveRange of
+        // every CocktailFlavorTag would wipe custom cocktails' tags here
+        // without the loop below ever re-adding them (it only iterates
+        // cocktailIds, which already excludes IsCustom).
+        var existingCocktailTags = await _context.CocktailFlavorTags
+            .Where(cft => cocktailIds.Contains(cft.CocktailId))
+            .ToListAsync();
         _context.CocktailFlavorTags.RemoveRange(existingCocktailTags);
 
         var ingredientIdsByCocktail = cocktailIngredients

@@ -42,4 +42,26 @@ public class LookupController : ControllerBase
 
         return Ok(flavorTags);
     }
+
+    // Capped at 50 (unlike spirits/flavor-tags above, which return their
+    // full handful of rows) -- the ingredient catalog is hundreds of rows,
+    // so this is meant for a debounced autocomplete, not a full list.
+    [HttpGet("ingredients")]
+    public async Task<IActionResult> GetIngredients([FromQuery] string? search)
+    {
+        var query = _context.Ingredients.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(i => i.Name.ToLower().Contains(search.ToLower()));
+        }
+
+        var ingredients = await query
+            .OrderBy(i => i.Name)
+            .Take(50)
+            .Select(i => new LookupItemDto { Id = i.Id, Name = i.Name })
+            .ToListAsync();
+
+        return Ok(ingredients);
+    }
 }
