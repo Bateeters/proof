@@ -13,7 +13,8 @@ public class WhatCanIMakeService
         _context = context;
     }
 
-    public async Task<List<WhatCanIMakeResultDto>> FindMakeableCocktailsAsync(IEnumerable<string> haveIngredientNames)
+    public async Task<List<WhatCanIMakeResultDto>> FindMakeableCocktailsAsync(
+        Guid callerAccountId, Guid? callerProfileId, IEnumerable<string> haveIngredientNames)
     {
         // Case-insensitive exact-name matching, not fuzzy/substring like the
         // flavor heuristics — "what can I make" is an inventory check, and a
@@ -31,7 +32,9 @@ public class WhatCanIMakeService
             return [];
         }
 
+        var savedCocktailIds = await CocktailVisibility.GetSavedCocktailIdsAsync(_context, callerProfileId);
         var cocktails = await _context.Cocktails
+            .Where(CocktailVisibility.VisibleTo(callerAccountId, callerProfileId, savedCocktailIds))
             .Include(c => c.CocktailIngredients).ThenInclude(ci => ci.Ingredient)
             .ToListAsync();
 

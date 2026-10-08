@@ -34,8 +34,12 @@ public class TasteRankingService
     // search/category/seasons/flavorTags/spirits filters are the same ones
     // CocktailsController.GetCocktails exposes — they're applied here too so
     // scoring and filtering share one pass instead of scoring everything
-    // and filtering after the fact.
+    // and filtering after the fact. callerAccountId is required (every
+    // caller is authenticated) and drives CocktailVisibility.VisibleTo, so
+    // a custom cocktail invisible to this caller never gets scored/returned
+    // in the first place.
     public async Task<List<CocktailSummaryDto>> RankCocktailsForProfileAsync(
+        Guid callerAccountId,
         Guid? profileId,
         string? search = null,
         string? category = null,
@@ -63,7 +67,9 @@ public class TasteRankingService
                 .ToListAsync();
         }
 
-        var query = _context.Cocktails.AsQueryable();
+        var savedCocktailIds = await CocktailVisibility.GetSavedCocktailIdsAsync(_context, profileId);
+        var query = _context.Cocktails
+            .Where(CocktailVisibility.VisibleTo(callerAccountId, profileId, savedCocktailIds));
 
         if (!string.IsNullOrWhiteSpace(search))
         {

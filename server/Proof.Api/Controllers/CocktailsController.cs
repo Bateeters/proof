@@ -86,23 +86,35 @@ public class CocktailsController : ControllerBase
             .ToList();
 
         var cocktails = await _tasteRankingService.RankCocktailsForProfileAsync(
-            profileId, search, category, parsedSeasons, parsedFlavorTags, parsedSpirits);
+            GetAccountId(), profileId, search, category, parsedSeasons, parsedFlavorTags, parsedSpirits);
 
         return Ok(cocktails);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetCocktailById(Guid id)
+    public async Task<IActionResult> GetCocktailById(Guid id, [FromQuery] Guid? profileId)
     {
+        if (profileId.HasValue && !await IsOwnedByCallerAsync(profileId.Value))
+        {
+            return NotFound();
+        }
+
+        var accountId = GetAccountId();
+        var savedCocktailIds = await CocktailVisibility.GetSavedCocktailIdsAsync(_context, profileId);
+
         var cocktail = await _context.Cocktails
+            .Where(CocktailVisibility.VisibleTo(accountId, profileId, savedCocktailIds))
             .Include(c => c.CocktailIngredients)
             .ThenInclude(ci => ci.Ingredient)
             .Include(c => c.CocktailFlavorTags)
             .ThenInclude(cft => cft.FlavorTag)
+            .Include(c => c.CocktailSeasons)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (cocktail == null)
         {
+            // Same response whether the id doesn't exist or it exists but
+            // is invisible to this caller -- don't leak existence.
             return NotFound();
         }
 
@@ -120,16 +132,26 @@ public class CocktailsController : ControllerBase
                 IngredientName = ci.Ingredient.Name,
                 Measure = ci.Measure
             }).ToList(),
-            FlavorTags = cocktail.CocktailFlavorTags.Select(cft => cft.FlavorTag.Name).ToList()
+            FlavorTags = cocktail.CocktailFlavorTags.Select(cft => cft.FlavorTag.Name).ToList(),
+            FlavorTagIds = cocktail.CocktailFlavorTags.Select(cft => cft.FlavorTagId).ToList(),
+            Seasons = cocktail.CocktailSeasons.Select(cs => cs.Season.ToString()).ToList(),
+            IsCustom = cocktail.IsCustom,
+            Visibility = cocktail.Visibility,
+            IsOwnedByCaller = profileId.HasValue && cocktail.OwnerProfileId == profileId.Value
         };
 
         return Ok(cocktailDetailDto);
     }
 
     [HttpGet("{id}/similar")]
-    public async Task<IActionResult> GetSimilarCocktails(Guid id, [FromQuery] int take = 4)
+    public async Task<IActionResult> GetSimilarCocktails(Guid id, [FromQuery] int take = 4, [FromQuery] Guid? profileId = null)
     {
-        var similar = await _similarityService.GetSimilarCocktailsAsync(id, take);
+        if (profileId.HasValue && !await IsOwnedByCallerAsync(profileId.Value))
+        {
+            return NotFound();
+        }
+
+        var similar = await _similarityService.GetSimilarCocktailsAsync(GetAccountId(), profileId, id, take);
 
         if (similar == null)
         {
@@ -140,9 +162,16 @@ public class CocktailsController : ControllerBase
     }
 
     [HttpGet("categories")]
-    public async Task<IActionResult> GetCategories()
+    public async Task<IActionResult> GetCategories([FromQuery] Guid? profileId)
     {
+        if (profileId.HasValue && !await IsOwnedByCallerAsync(profileId.Value))
+        {
+            return NotFound();
+        }
+
+        var savedCocktailIds = await CocktailVisibility.GetSavedCocktailIdsAsync(_context, profileId);
         var categories = await _context.Cocktails
+            .Where(CocktailVisibility.VisibleTo(GetAccountId(), profileId, savedCocktailIds))
             .Select(c => c.Category)
             .Distinct()
             .OrderBy(c => c)
@@ -159,7 +188,10 @@ public class CocktailsController : ControllerBase
             return NotFound();
         }
 
+        var accountId = GetAccountId();
+        var savedCocktailIds = await CocktailVisibility.GetSavedCocktailIdsAsync(_context, profileId);
         var categories = await _context.Cocktails
+            .Where(CocktailVisibility.VisibleTo(accountId, profileId, savedCocktailIds))
             .Select(c => c.Category)
             .Distinct()
             .OrderBy(c => c)
@@ -172,7 +204,7 @@ public class CocktailsController : ControllerBase
             // Ranked per-category first, then truncated -- taking the top
             // N by name and only sorting afterward would show the top 4
             // alphabetically, not the top 4 by match score.
-            var ranked = await _tasteRankingService.RankCocktailsForProfileAsync(profileId, category: category);
+            var ranked = await _tasteRankingService.RankCocktailsForProfileAsync(accountId, profileId, category: category);
 
             previews.Add(new CategoryPreviewDto { Category = category, Cocktails = ranked.Take(perCategory).ToList() });
         }
@@ -181,10 +213,61 @@ public class CocktailsController : ControllerBase
     }
 
     [HttpGet("what-can-i-make")]
-    public async Task<IActionResult> WhatCanIMake([FromQuery] string? ingredients)
+    public async Task<IActionResult> WhatCanIMake([FromQuery] string? ingredients, [FromQuery] Guid? profileId)
     {
+        if (profileId.HasValue && !await IsOwnedByCallerAsync(profileId.Value))
+        {
+            return NotFound();
+        }
+
         var ingredientNames = (ingredients ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
-        var results = await _whatCanIMakeService.FindMakeableCocktailsAsync(ingredientNames);
+        var results = await _whatCanIMakeService.FindMakeableCocktailsAsync(GetAccountId(), profileId, ingredientNames);
         return Ok(results);
+    }
+
+    // Drives the add/edit cocktail form's live tag/season pre-fill as the
+    // user edits the ingredient list -- no ownership check needed (not
+    // scoped to any specific cocktail/profile), and lenient on entries it
+    // can't resolve (filtered out, never a 400) since this is a live
+    // suggestion, not a save-time validation gate.
+    [HttpPost("suggest-tags")]
+    public async Task<IActionResult> SuggestTags(SuggestTagsRequestDto request)
+    {
+        var existingIds = request.Ingredients
+            .Where(i => i.IngredientId.HasValue)
+            .Select(i => i.IngredientId!.Value)
+            .ToList();
+
+        var namesById = await _context.Ingredients
+            .Where(i => existingIds.Contains(i.Id))
+            .ToDictionaryAsync(i => i.Id, i => i.Name);
+
+        var names = new List<string>();
+        foreach (var entry in request.Ingredients)
+        {
+            if (entry.IngredientId.HasValue)
+            {
+                if (namesById.TryGetValue(entry.IngredientId.Value, out var existingName))
+                {
+                    names.Add(existingName);
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(entry.NewIngredientName))
+            {
+                names.Add(CustomCocktailService.NormalizeIngredientName(entry.NewIngredientName));
+            }
+        }
+
+        var tagSets = names.Select(n => IngredientFlavorHeuristic.AssignFlavorTag(n));
+        var prominentTagNames = CocktailFlavorTagHeuristic.ComputeProminentTags(tagSets);
+
+        var flavorTagIds = await _context.FlavorTags
+            .Where(f => prominentTagNames.Contains(f.Name))
+            .Select(f => f.Id)
+            .ToListAsync();
+
+        var seasons = SeasonHeuristic.AssignSeasons(names).ToList();
+
+        return Ok(new SuggestTagsResponseDto { FlavorTagIds = flavorTagIds, Seasons = seasons });
     }
 }

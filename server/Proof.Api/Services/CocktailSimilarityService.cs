@@ -29,9 +29,17 @@ public class CocktailSimilarityService
         _context = context;
     }
 
-    public async Task<List<CocktailSummaryDto>?> GetSimilarCocktailsAsync(Guid cocktailId, int take = 4)
+    public async Task<List<CocktailSummaryDto>?> GetSimilarCocktailsAsync(
+        Guid callerAccountId, Guid? callerProfileId, Guid cocktailId, int take = 4)
     {
+        var savedCocktailIds = await CocktailVisibility.GetSavedCocktailIdsAsync(_context, callerProfileId);
+        var visibleTo = CocktailVisibility.VisibleTo(callerAccountId, callerProfileId, savedCocktailIds);
+
+        // Visibility applied to the target lookup too -- a cocktail
+        // invisible to this caller can't even be used to probe "similar"
+        // results, which would itself leak its existence/flavor profile.
         var target = await _context.Cocktails
+            .Where(visibleTo)
             .Include(c => c.CocktailIngredients).ThenInclude(ci => ci.Ingredient)
             .Include(c => c.CocktailFlavorTags).ThenInclude(cft => cft.FlavorTag)
             .FirstOrDefaultAsync(c => c.Id == cocktailId);
@@ -53,6 +61,7 @@ public class CocktailSimilarityService
         // TasteRankingService uses, rather than pulling all 426 cocktails
         // in just to score most of them 0.
         var candidates = await _context.Cocktails
+            .Where(visibleTo)
             .Where(c => c.Id != cocktailId && (
                 c.Category == target.Category ||
                 c.CocktailFlavorTags.Any(cft => targetFlavorTagIds.Contains(cft.FlavorTagId)) ||

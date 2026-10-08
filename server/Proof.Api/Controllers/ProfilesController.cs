@@ -16,11 +16,13 @@ public class ProfilesController : ControllerBase
 {
     private readonly ProofDbContext _context;
     private readonly TasteRankingService _tasteRankingService;
+    private readonly CustomCocktailService _customCocktailService;
 
-    public ProfilesController(ProofDbContext context, TasteRankingService tasteRankingService)
+    public ProfilesController(ProofDbContext context, TasteRankingService tasteRankingService, CustomCocktailService customCocktailService)
     {
         _context = context;
         _tasteRankingService = tasteRankingService;
+        _customCocktailService = customCocktailService;
     }
 
     private Guid GetAccountId()
@@ -34,6 +36,15 @@ public class ProfilesController : ControllerBase
         var accountId = GetAccountId();
         return await _context.Profiles
             .FirstOrDefaultAsync(p => p.Id == profileId && p.AccountId == accountId);
+    }
+
+    // Must be IsCustom (editing/deleting a synced catalog cocktail is never
+    // allowed, even in the unexpected case OwnerProfileId somehow matched)
+    // and not already deleted.
+    private async Task<Cocktail?> GetOwnedCustomCocktailAsync(Guid profileId, Guid cocktailId)
+    {
+        return await _context.Cocktails
+            .FirstOrDefaultAsync(c => c.Id == cocktailId && c.OwnerProfileId == profileId && c.IsCustom && !c.IsDeleted);
     }
 
     [HttpGet]
@@ -196,7 +207,7 @@ public class ProfilesController : ControllerBase
             return NotFound();
         }
 
-        var ranked = await _tasteRankingService.RankCocktailsForProfileAsync(id);
+        var ranked = await _tasteRankingService.RankCocktailsForProfileAsync(GetAccountId(), id);
         return Ok(ranked);
     }
 
@@ -236,7 +247,15 @@ public class ProfilesController : ControllerBase
             return NotFound();
         }
 
-        var cocktailExists = await _context.Cocktails.AnyAsync(c => c.Id == request.CocktailId);
+        // Visibility-gated, not just existence -- otherwise a profile could
+        // "bookmark" a cocktail id it can't actually see (e.g. a stranger's
+        // Private custom cocktail, guessed or leaked somehow) and use the
+        // saved-cocktail grandfather clause (CocktailVisibility.VisibleTo)
+        // as a backdoor to permanent access.
+        var savedCocktailIds = await CocktailVisibility.GetSavedCocktailIdsAsync(_context, id);
+        var cocktailExists = await _context.Cocktails
+            .Where(CocktailVisibility.VisibleTo(GetAccountId(), id, savedCocktailIds))
+            .AnyAsync(c => c.Id == request.CocktailId);
         if (!cocktailExists)
         {
             return NotFound();
@@ -284,6 +303,103 @@ public class ProfilesController : ControllerBase
         }
 
         _context.CookbookEntries.Remove(entry);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // All of this profile's own cocktails, every visibility tier -- the
+    // full management view behind "My Creations". Distinct from
+    // CocktailsController's read endpoints, which only show what's
+    // visible to the caller per CocktailVisibility.VisibleTo.
+    [HttpGet("{id}/cocktails")]
+    public async Task<IActionResult> GetMyCocktails(Guid id)
+    {
+        var profile = await GetOwnedProfileAsync(id);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        var cocktails = await _context.Cocktails
+            .Where(c => c.OwnerProfileId == id && !c.IsDeleted)
+            .OrderByDescending(c => c.CreatedAt)
+            .Select(c => new MyCocktailSummaryDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Category = c.Category,
+                Glass = c.Glass,
+                ImageUrl = c.ImageUrl,
+                Visibility = c.Visibility,
+                FlavorTags = c.CocktailFlavorTags.Select(cft => cft.FlavorTag.Name).ToList()
+            })
+            .ToListAsync();
+
+        return Ok(cocktails);
+    }
+
+    [HttpPost("{id}/cocktails")]
+    public async Task<IActionResult> CreateCocktail(Guid id, SaveCustomCocktailDto request)
+    {
+        var profile = await GetOwnedProfileAsync(id);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        var (success, error, cocktail) = await _customCocktailService.CreateAsync(id, request);
+        if (!success)
+        {
+            return BadRequest(new { message = error });
+        }
+
+        return Ok(new { id = cocktail!.Id });
+    }
+
+    [HttpPut("{id}/cocktails/{cocktailId}")]
+    public async Task<IActionResult> UpdateCocktail(Guid id, Guid cocktailId, SaveCustomCocktailDto request)
+    {
+        var profile = await GetOwnedProfileAsync(id);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        var cocktail = await GetOwnedCustomCocktailAsync(id, cocktailId);
+        if (cocktail == null)
+        {
+            return NotFound();
+        }
+
+        var (success, error) = await _customCocktailService.UpdateAsync(cocktail, request);
+        if (!success)
+        {
+            return BadRequest(new { message = error });
+        }
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}/cocktails/{cocktailId}")]
+    public async Task<IActionResult> DeleteCocktail(Guid id, Guid cocktailId)
+    {
+        var profile = await GetOwnedProfileAsync(id);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        var cocktail = await GetOwnedCustomCocktailAsync(id, cocktailId);
+        if (cocktail == null)
+        {
+            return NotFound();
+        }
+
+        // Soft delete only -- no cascade. Children rows and anyone else's
+        // CookbookEntry referencing it stay intact; CocktailVisibility.
+        // VisibleTo is what actually hides it from everyone except a
+        // profile that already saved it before the delete.
+        cocktail.IsDeleted = true;
         await _context.SaveChangesAsync();
         return NoContent();
     }
