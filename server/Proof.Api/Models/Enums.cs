@@ -45,3 +45,15 @@ public enum SubstitutionReason
     Cost,
     Supply
 }
+
+// Who can see a custom cocktail. Only meaningful when Cocktail.IsCustom is
+// true -- synced catalog cocktails carry the default value but it's never
+// consulted for them (CocktailVisibility.VisibleTo short-circuits on
+// !IsCustom first). Private: only the creating profile. Local: every
+// profile under the same account. Global: everyone.
+public enum Visibility
+{
+    Private,
+    Local,
+    Global
+}

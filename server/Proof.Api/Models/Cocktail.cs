@@ -13,6 +13,17 @@ public class Cocktail
     public Guid? OwnerProfileId { get; set; }
     public Profile? OwnerProfile { get; set; }
 
+    // Who can see this cocktail -- only meaningful when IsCustom is true.
+    public Visibility Visibility { get; set; } = Visibility.Private;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Soft delete only -- a custom cocktail's children (ingredients,
+    // flavor tags, seasons) and anyone else's CookbookEntry referencing it
+    // stay intact when "deleted". CocktailVisibility.VisibleTo is what
+    // actually hides it from everyone except a profile that already saved
+    // it before the delete.
+    public bool IsDeleted { get; set; } = false;
+
     // Reverse of CocktailIngredient/CocktailSeason's "Cocktail" navigation —
     // lets us query/include a cocktail's own ingredients and seasons directly,
     // e.g. c.CocktailSeasons.Any(...) or .Include(c => c.CocktailIngredients).
